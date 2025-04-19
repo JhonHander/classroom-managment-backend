@@ -1,13 +1,11 @@
 class Reservation {
-    constructor({ id, userId, classroomId, reservationStatusId, date, startHour, finishHour, tokenQr, dateExpiration }) {
+    constructor({ id, user_id, classroom_id, reservation_status_id, date, start_hour, finish_hour }) {
         this.id = id; // ID of the reservation
-        this.userId = userId; // ID of the user who made the reservation
-        this.classroomId = classroomId; // ID of the classroom reserved
-        this.reservationStatusId = reservationStatusId; // Status of the reservation (e.g., confirmed, canceled)
+        this.user_id = user_id; // ID of the user who made the reservation
+        this.classroom_id = classroom_id; // ID of the classroom reserved
+        this.reservation_status_id = reservation_status_id; // Status of the reservation (e.g., confirmed, canceled)
         this.date = date; // Date of the reservation
-        this.startHour = startHour; // Start hour of the reservation
-        this.finishHour = finishHour; // Finish hour of the reservation
-        this.tokenQr = tokenQr; // Token for QR code
-        this.dateExpiration = dateExpiration; // Expiration date of the token
+        this.start_hour = start_hour; // Start hour of the reservation
+        this.finish_hour = finish_hour; // Finish hour of the reservation
     }
 }
