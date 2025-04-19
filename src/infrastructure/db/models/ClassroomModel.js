@@ -39,6 +39,10 @@ const ClassroomModel = sequelize.define('Classroom', {
         unique: true,
         field: 'qr_code',
     },
+    capacity: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    }
     // No necesitamos createdAt/updatedAt si no están en la tabla SQL
 }, {
     tableName: 'Classroom', // Nombre exacto de la tabla en la BD
