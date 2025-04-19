@@ -1,0 +1,30 @@
+{
+  "name": "classroom-managment-backend",
+  "version": "1.0.0",
+  "description": "Backend para sistema de gestión de aulas",
+  "keywords": [
+    "classroom",
+    "management",
+    "backend"
+  ],
+  "license": "MIT",
+  "author": "Jhon Hander Mejia Muñoz y Nicolas Hoyos Giraldo",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.0",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "eslint": "^9.24.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3"
+  }
+}
