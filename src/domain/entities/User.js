@@ -1,20 +1,20 @@
 class User {
-  constructor({ id, roleId, name, lastName, email, password }) {
+  constructor({ id, rol_id, name, last_name, email, password }) {
     this.id = id; // ID of the user
-    this.roleId = roleId; // type of user (1: admin, 2: teacher, 3: student)
+    this.rol_id = rol_id; // type of user (1: admin, 2: teacher, 3: student)
     this.name = name;
-    this.lastName = lastName;
+    this.last_name = last_name;
     this.email = email;
     this.password = password; // Password should be hashed in the database
   }
 
   // Campo calculado (getter)
   get full_name() {
-    return `${this.name} ${this.lastName}`;
+    return `${this.name} ${this.last_name}`;
   }
 
   hasRightsJerarchy() {
-    return this.roleId === 1 || this.rol === 2;
+    return this.rol === 'admin' || this.rol === 'teacher';
   }
 
   whatsTheRole() {

@@ -3,12 +3,6 @@ import { sequelize } from './database.js';
 // Importa tus futuras implementaciones de repositorios y casos de uso aquí
 // import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
 // import { CreateUserUseCase } from '../application/use_cases/CreateUserUseCase.js';
-// import { ClassroomMapper } from '../infrastructure/mappers/ClassroomMapper.js';  //  Si lo registraras como servicio
-import ClassroomModel from '../infrastructure/db/models/ClassroomModel.js';
-import ClassroomTypeModel from '../infrastructure/db/models/ClassroomTypeModel.js';
-import ClassroomFeatureModel from '../infrastructure/db/models/ClassroomFeatureModel.js';
-
-// --- Configuración del Contenedor ---
 
 class AppContainer {
     constructor() {
@@ -63,28 +57,20 @@ const container = new AppContainer();
 container.register('sequelize', sequelize, { singleton: true });
 
 // 2. Registrar Modelos (si los defines por separado y los necesitas explícitamente)
-container.register('ClassroomModel', ClassroomModel, { singleton: true });
-container.register('ClassroomTypeModel', ClassroomTypeModel, { singleton: true });
-container.register('ClassroomFeatureModel', ClassroomFeatureModel, { singleton: true });
+//    Ejemplo (asumiendo que defines modelos Sequelize en infrastructure/models):
+//    import UserModel from '../infrastructure/models/UserModel.js';
+//    container.register('UserModel', UserModel, { singleton: true }); // Los modelos suelen ser singletons
 
 // 3. Registrar Implementaciones de Repositorios (como fábricas)
-container.register('classroomRepository', (c) => {
-  return new SequelizeClassroomRepository(
-    c.resolve('ClassroomModel'),
-    c.resolve('ClassroomTypeModel'),
-    c.resolve('FeatureModel'),
-    // c.resolve('ClassroomMapper') // Si el mapper fuera un servicio, no lo sé
-  );
-}, { singleton: true });
-
-
-// import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
-// container.register('userRepository', (c) => {
-//     // const userModel = c.resolve('UserModel'); // Si registraste el modelo
-//     // return new SequelizeUserRepository(userModel);
-//     return new SequelizeUserRepository(c.resolve('sequelize')); // O pasa sequelize directamente
-// }, { singleton: true }); // Los repositorios suelen ser singletons
-
+//    Esto se hará cuando crees las clases en infrastructure/repositories
+/*
+import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
+container.register('userRepository', (c) => {
+    // const userModel = c.resolve('UserModel'); // Si registraste el modelo
+    // return new SequelizeUserRepository(userModel);
+    return new SequelizeUserRepository(c.resolve('sequelize')); // O pasa sequelize directamente
+}, { singleton: true }); // Los repositorios suelen ser singletons
+*/
 
 // 4. Registrar Casos de Uso (como fábricas)
 //    Esto se hará cuando crees las clases en application/use_cases
