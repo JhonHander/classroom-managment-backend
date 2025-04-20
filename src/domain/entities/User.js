@@ -1,7 +1,7 @@
 class User {
-  constructor({ id, roleId, name, lastName, email, password }) {
+  constructor({ id, role, name, lastName, email, password }) {
     this.id = id; // ID of the user
-    this.roleId = roleId; // type of user (1: admin, 2: teacher, 3: student)
+    this.role = role; // type of user (1: admin, 2: teacher, 3: student)
     this.name = name;
     this.lastName = lastName;
     this.email = email;

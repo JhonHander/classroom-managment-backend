@@ -1,9 +1,9 @@
 class Reservation {
-    constructor({ id, userId, classroomId, reservationStatusId, date, startHour, finishHour, tokenQr, dateExpiration }) {
+    constructor({ id, user, classroom, reservationStatus, date, startHour, finishHour, tokenQr, dateExpiration }) {
         this.id = id; // ID of the reservation
-        this.userId = userId; // ID of the user who made the reservation
-        this.classroomId = classroomId; // ID of the classroom reserved
-        this.reservationStatusId = reservationStatusId; // Status of the reservation (e.g., confirmed, canceled)
+        this.user = user; // object containing user information
+        this.classroom = classroom; // object containing classroom information
+        this.reservationStatus = reservationStatus; // object containing reservation status information
         this.date = date; // Date of the reservation
         this.startHour = startHour; // Start hour of the reservation
         this.finishHour = finishHour; // Finish hour of the reservation

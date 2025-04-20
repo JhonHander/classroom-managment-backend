@@ -1,78 +1,57 @@
 import { Classroom } from '../../domain/entities/Classroom.js';
-import { ClassroomType } from '../../domain/entities/ClassroomType.js'; //  Asumiendo que tienes esta entidad
-import { ClassroomFeature } from '../../domain/entities/ClassroomFeatures.js'; // Asumiendo que tienes esta entidad
+// Importa los mappers específicos para las asociaciones
+import { ClassroomTypeMapper } from './ClassroomTypeMapper.js';
+// import { ClassroomFeatureMapper } from './ClassroomFeatureMapper.js';
 
 export class ClassroomMapper {
+
+  /**
+   * Maps a ClassroomModel to a Classroom domain entity.
+   * @param {Object} classroomModel - The ClassroomModel object to map.
+   * @returns {Classroom} - The mapped Classroom domain entity.
+   */
+
   static toDomain(classroomModel) {
-    if (!classroomModel) {
-      return null;
+    if (!classroomModel) return null;
+
+    // Mapeo del tipo de aula usando el objeto asociado 'classroomType' (alias)
+    const classroomType = classroomModel.classroomType ? ClassroomTypeMapper.toDomain(classroomModel.classroomType) : null;
+
+    if (!classroomType) {
+      throw new Error('ClassroomType not found in classroom model');
     }
+    // // Mapeo de las características usando el array asociado 'features' (alias)
+    // const features = classroomModel.features ? classroomModel.features.map(ClassroomFeatureMapper.toDomain) : [];
 
-    // Mapeo del tipo de aula
-    const classroomType = classroomModel.classroomTypeId ? new ClassroomType(
-      classroomModel.type.id,
-      classroomModel.type.name,
-    ) : null;
-
-    // Mapeo de las características
-    const features = classroomModel.features ? classroomModel.features.map(featureModel => new ClassroomFeature(
-      featureModel.id,
-      featureModel.name, 
-    )) : [];
-
-    return new Classroom(
-      classroomModel.id,
-      classroomType,
-      classroomModel.block,
-      classroomModel.classroomNumber,
-      classroomModel.classroomFullName,
-      classroomModel.qrCode,
-      classroomModel.capacity,
-    );
+    return new Classroom({
+      id: classroomModel.id,
+      classroomType: classroomType, // Pasa el objeto ClassroomType mapeado
+      block: classroomModel.block,
+      classroomNumber: classroomModel.classroomNumber,
+      classroomFullName: classroomModel.classroomFullName,
+      qrCode: classroomModel.qrCode,
+      capacity: classroomModel.capacity
+    });
   }
 
+
+  /**
+   * Maps a Classroom domain entity to a ClassroomModel.
+   * @param {Classroom} classroom - The Classroom domain entity to map.
+   * @return {Object} - The mapped ClassroomModel.
+   */
+
   static toModel(classroom) {
+    // Al guardar/actualizar, generalmente solo necesitas el ID de la relación
     return {
       id: classroom.id,
-      classroomTypeId: classroom.type ? classroom.type.id : null,
+      classroomTypeId: classroom.type ? classroom.type.id : null, // Usa el ID del tipo para la FK
       block: classroom.block,
       classroomNumber: classroom.number,
-      classroomFullName: classroom.fullName,
+      // classroomFullName es generado por la BD
       qrCode: classroom.qrCode,
       capacity: classroom.capacity,
-      //  Las features se manejan en el repositorio, no directamente en el modelo
+      // Las características (M-N) se manejan por separado (ej: setFeatures) en el repositorio
     };
   }
 }
-
-
-// import { Classroom } from '../../domain/entities/Classroom.js';
-
-// export class ClassroomMapper {
-//   static toDomain(classroomModel) {
-//     if (!classroomModel) {
-//       return null;
-//     }
-//     return new Classroom(
-//       classroomModel.id,
-//       classroomModel.block,
-//       classroomModel.classroomNumber,
-//       classroomModel.qr_code,
-//       classroomModel.capacity,
-//       classroomModel.classroomFullName,
-//       classroomModel.type, //  Asumo que ya viene como objeto ClassroomType
-//       classroomModel.features // Asumo que ya viene como array de Features
-//     );
-//   }
-
-//   static toModel(classroom) {
-//     return {
-//       id: classroom.id,
-//       block: classroom.block,
-//       classroomNumber: classroom.classroomNumber,
-//       // ... otros campos
-//       typeId: classroom.type.id //  Asumo que 'type' es un objeto ClassroomType con 'id'
-//       //  Las features se manejarían en una tabla intermedia, no directamente en el modelo
-//     };
-//   }
-// }
