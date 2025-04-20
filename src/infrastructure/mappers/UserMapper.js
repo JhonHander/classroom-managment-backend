@@ -2,6 +2,13 @@ import { User } from '../../domain/entities/User.js';
 import { RoleMapper } from './RoleMapper.js'; // Importa el RoleMapper
 
 export class UserMapper {
+
+  /**
+   * Maps a UserModel to a User domain entity.
+   * @param {Object} userModel - The UserModel object to map.
+   * @returns {User} - The mapped User domain entity.
+   */
+
   static toDomain(userModel) {
     if (!userModel) return null;
 
@@ -23,7 +30,15 @@ export class UserMapper {
     });
   }
 
+
+  /**
+   * Maps a User domain entity to a UserModel.
+   * @param {User} user - The User domain entity to map.
+   * @returns {Object} - The mapped UserModel.
+   */
+
   static toModel(user) {
+    if (!user) return null;
     // Devuelve un objeto plano para Sequelize
     return {
       id: user.id,
