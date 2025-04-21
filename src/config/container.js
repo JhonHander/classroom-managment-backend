@@ -13,8 +13,11 @@ import SensorModel from '../infrastructure/db/models/SensorModel.js';
 
 // --- Importa TODAS tus implementaciones de Repositorio ---
 import { SequelizeClassroomRepository } from '../infrastructure/repositories/SequelizeClassroomRepository.js';
-import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js'; // Asegúrate de crear este archivo
-// ... importa los demás repositorios (Reservation, Schedule, etc.) ...
+import { SequelizeReservationRepository } from '../infrastructure/repositories/SequelizeReservationRepository.js';
+import { SequelizeScheduleRepository } from '../infrastructure/repositories/SequelizeScheduleRepository.js';
+// import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
+import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
+
 
 // --- Importa tus Mappers (Opcional si los registras) ---
 // import { ClassroomMapper } from '../infrastructure/mappers/ClassroomMapper.js';
@@ -32,7 +35,7 @@ class AppContainer {
         } else {
             this._dependencies[name] = { definition, singleton: false };
         }
-        // console.log(`Dependency registered: ${name} (Singleton: ${options.singleton})`); // Puedes comentar esto en producción
+        console.log(`Dependency registered: ${name} (Singleton: ${options.singleton})`); // Puedes comentar esto en producción
     }
 
     resolve(name) {
@@ -77,6 +80,22 @@ container.register('classroomRepository', (c) => {
         c.resolve('ClassroomTypeModel'),
         c.resolve('ClassroomFeatureModel')
         // No necesitas inyectar el Mapper si sus métodos son estáticos
+    );
+}, { singleton: true });
+
+container.register('reservationRepository', (c) => {
+    return new SequelizeReservationRepository(
+        c.resolve('ReservationModel'),
+        c.resolve('UserModel'), // El repositorio de reserva necesita el modelo User para incluirlo
+        c.resolve('ClassroomModel'), // El repositorio de reserva necesita el modelo Classroom para incluirlo
+        c.resolve('ReservationStatusModel') // El repositorio de reserva necesita el modelo ReservationStatus para incluirlo
+    );
+}, { singleton: true });
+
+container.register('scheduleRepository', (c) => {
+    return new SequelizeScheduleRepository(
+        c.resolve('ScheduleModel'),
+        c.resolve('ClassroomModel')
     );
 }, { singleton: true });
 
