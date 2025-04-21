@@ -14,7 +14,7 @@ class User {
   }
 
   hasRightsJerarchy() {
-    return this.roleId === 1 || this.rol === 2;
+    return this.role === 1 || this.role === 2;
   }
 
   whatsTheRole() {
