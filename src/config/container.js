@@ -15,7 +15,6 @@ import SensorModel from '../infrastructure/db/models/SensorModel.js';
 import { SequelizeClassroomRepository } from '../infrastructure/repositories/SequelizeClassroomRepository.js';
 import { SequelizeReservationRepository } from '../infrastructure/repositories/SequelizeReservationRepository.js';
 import { SequelizeScheduleRepository } from '../infrastructure/repositories/SequelizeScheduleRepository.js';
-// import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
 import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 
