@@ -17,7 +17,7 @@ import { SequelizeReservationRepository } from '../infrastructure/repositories/S
 import { SequelizeScheduleRepository } from '../infrastructure/repositories/SequelizeScheduleRepository.js';
 // import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
-
+import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 
 // --- Importa tus Mappers (Opcional si los registras) ---
 // import { ClassroomMapper } from '../infrastructure/mappers/ClassroomMapper.js';
@@ -106,10 +106,15 @@ container.register('userRepository', (c) => {
     );
 }, { singleton: true });
 
-// --- Registra aquí los demás repositorios (Reservation, Schedule, etc.) ---
-// container.register('reservationRepository', (c) => new SequelizeReservationRepository(...), { singleton: true });
-// container.register('scheduleRepository', (c) => new SequelizeScheduleRepository(...), { singleton: true });
-// ...
+// --- Registra aquí los demás repositorios (Sensor) ---
+container.register('sensorRepository', (c) => {
+    // Asegúrate de importar SequelizeSensorRepository arriba
+    // import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
+    return new SequelizeSensorRepository(
+        c.resolve('SensorModel'),
+        c.resolve('ClassroomModel') // El repositorio de sensor necesita el modelo Classroom para incluirlo
+    );
+}, { singleton: true });
 
 // 5. Casos de Uso (No suelen ser singletons, inyectando repositorios)
 // Se registrarán cuando los crees en src/application/use_cases
