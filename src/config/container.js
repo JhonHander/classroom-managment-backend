@@ -1,6 +1,6 @@
 import { sequelize } from './database.js';
 
-// --- Importa TODOS tus modelos ---
+// --- Importación de modelos ---
 import RoleModel from '../infrastructure/db/models/RoleModel.js';
 import UserModel from '../infrastructure/db/models/UserModel.js';
 import ScheduleModel from '../infrastructure/db/models/ScheduleModel.js';
@@ -11,15 +11,21 @@ import ReservationStatusModel from '../infrastructure/db/models/ReservationStatu
 import ReservationModel from '../infrastructure/db/models/ReservationModel.js';
 import SensorModel from '../infrastructure/db/models/SensorModel.js';
 
-// --- Importa TODAS tus implementaciones de Repositorio ---
+// --- Importación de las implementaciones de Repositorio ---
 import { SequelizeClassroomRepository } from '../infrastructure/repositories/SequelizeClassroomRepository.js';
 import { SequelizeReservationRepository } from '../infrastructure/repositories/SequelizeReservationRepository.js';
 import { SequelizeScheduleRepository } from '../infrastructure/repositories/SequelizeScheduleRepository.js';
 import { SequelizeUserRepository } from '../infrastructure/repositories/SequelizeUserRepository.js';
 import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 
-// --- Importa tus Mappers (Opcional si los registras) ---
-// import { ClassroomMapper } from '../infrastructure/mappers/ClassroomMapper.js';
+// --- Importación de Servicios ---
+import { JsonWebTokenService } from '../infrastructure/services/JsonWebTokenService.js';
+import { HashingService } from '../infrastructure/services/HashingService.js';
+import { EmailNotificationService } from '../infrastructure/services/EmailNotificationService.js';
+
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 class AppContainer {
     // ... (código del constructor, register, resolve sin cambios) ...
@@ -59,15 +65,15 @@ const container = new AppContainer();
 container.register('sequelize', sequelize, { singleton: true });
 
 // 2. Modelos Sequelize (Singletons)
-container.register('RoleModel', RoleModel, { singleton: true });
-container.register('UserModel', UserModel, { singleton: true });
-container.register('ScheduleModel', ScheduleModel, { singleton: true });
-container.register('ClassroomTypeModel', ClassroomTypeModel, { singleton: true });
-container.register('ClassroomFeatureModel', ClassroomFeatureModel, { singleton: true });
-container.register('ClassroomModel', ClassroomModel, { singleton: true });
-container.register('ReservationStatusModel', ReservationStatusModel, { singleton: true });
-container.register('ReservationModel', ReservationModel, { singleton: true });
-container.register('SensorModel', SensorModel, { singleton: true });
+container.register('roleModel', RoleModel, { singleton: true });
+container.register('userModel', UserModel, { singleton: true });
+container.register('scheduleModel', ScheduleModel, { singleton: true });
+container.register('classroomTypeModel', ClassroomTypeModel, { singleton: true });
+container.register('classroomFeatureModel', ClassroomFeatureModel, { singleton: true });
+container.register('classroomModel', ClassroomModel, { singleton: true });
+container.register('reservationStatusModel', ReservationStatusModel, { singleton: true });
+container.register('reservationModel', ReservationModel, { singleton: true });
+container.register('sensorModel', SensorModel, { singleton: true });
 
 // 3. Mappers (Generalmente no necesitan ser singletons ni registrados, se usan estáticamente)
 // container.register('ClassroomMapper', ClassroomMapper); // Opcional
@@ -75,43 +81,74 @@ container.register('SensorModel', SensorModel, { singleton: true });
 // 4. Repositorios (Singletons, inyectando modelos)
 container.register('classroomRepository', (c) => {
     return new SequelizeClassroomRepository(
-        c.resolve('ClassroomModel'),
-        c.resolve('ClassroomTypeModel'),
-        c.resolve('ClassroomFeatureModel')
+        c.resolve('classroomModel'),
+        c.resolve('classroomTypeModel'),
+        c.resolve('classroomFeatureModel')
         // No necesitas inyectar el Mapper si sus métodos son estáticos
     );
 }, { singleton: true });
 
 container.register('reservationRepository', (c) => {
     return new SequelizeReservationRepository(
-        c.resolve('ReservationModel'),
-        c.resolve('UserModel'), // El repositorio de reserva necesita el modelo User para incluirlo
-        c.resolve('ClassroomModel'), // El repositorio de reserva necesita el modelo Classroom para incluirlo
-        c.resolve('ReservationStatusModel') // El repositorio de reserva necesita el modelo ReservationStatus para incluirlo
+        c.resolve('reservationModel'),
+        c.resolve('userModel'), // El repositorio de reserva necesita el modelo User para incluirlo
+        c.resolve('classroomModel'), // El repositorio de reserva necesita el modelo Classroom para incluirlo
+        c.resolve('reservationStatusModel') // El repositorio de reserva necesita el modelo ReservationStatus para incluirlo
     );
 }, { singleton: true });
 
 container.register('scheduleRepository', (c) => {
     return new SequelizeScheduleRepository(
-        c.resolve('ScheduleModel'),
-        c.resolve('ClassroomModel')
+        c.resolve('scheduleModel'),
+        c.resolve('classroomModel')
     );
 }, { singleton: true });
 
 container.register('userRepository', (c) => {
     return new SequelizeUserRepository(
-        c.resolve('UserModel'),
-        c.resolve('RoleModel') // El repositorio de usuario necesita el modelo Role para incluirlo
+        c.resolve('userModel'),
+        c.resolve('roleModel') // El repositorio de usuario necesita el modelo Role para incluirlo
     );
 }, { singleton: true });
 
-// --- Registra aquí los demás repositorios (Sensor) ---
 container.register('sensorRepository', (c) => {
-    // Asegúrate de importar SequelizeSensorRepository arriba
-    // import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
     return new SequelizeSensorRepository(
-        c.resolve('SensorModel'),
-        c.resolve('ClassroomModel') // El repositorio de sensor necesita el modelo Classroom para incluirlo
+        c.resolve('sensorModel'),
+        c.resolve('classroomModel') // El repositorio de sensor necesita el modelo Classroom para incluirlo
+    );
+}, { singleton: true });
+
+container.register('hashingService', () => {
+    // Asume que HashingService también podría aceptar saltRounds
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+    return new HashingService(saltRounds);
+}, { singleton: true });
+
+container.register('jwtService', () => {
+    // Lee las variables de entorno aquí y pásalas al constructor
+    const secret = process.env.JWT_SECRET;
+    const expiresIn = process.env.JWT_EXPIRES_IN;
+    return new JsonWebTokenService(secret, expiresIn);
+}, { singleton: true });
+
+container.register('emailNotificationService', () => {
+
+    const host = process.env.SMTP_HOST;
+    const port = process.env.SMTP_PORT;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASSWORD;
+    const defaultFrom = process.env.EMAIL_FROM;
+    const nodeEnv = process.env.NODE_ENV;
+    // const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'; // Añade la URL del frontend
+
+    return new EmailNotificationService(
+        host,
+        port,
+        user,
+        pass,
+        defaultFrom,
+        nodeEnv,
+        // frontendUrl // Si decides usarlo, descomenta esta línea
     );
 }, { singleton: true });
 
