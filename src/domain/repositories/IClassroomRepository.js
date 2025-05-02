@@ -1,5 +1,5 @@
 // Interfaz para el repositorio de Aulas
-class IAulaRepository {
+class IClassroomRepository {
     // CRUD básico
     async create(classroom) { throw new Error("Method not implemented"); }
     async findById(id) { throw new Error("Method not implemented"); }
@@ -10,4 +10,7 @@ class IAulaRepository {
     async getByBlock(block) { throw new Error("Method not implemented"); }
     async getWithFeatures(features) { throw new Error("Method not implemented"); }
     async getAvailable(date, time) { throw new Error("Method not implemented"); }
+    async findAll() { throw new Error("Method not implemented"); }
 }
+
+export default IClassroomRepository;

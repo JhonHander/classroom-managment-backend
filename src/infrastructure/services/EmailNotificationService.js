@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';  // npm install nodemailer
 import { INotificationService } from '../../application/ports/INotificationService.js';
-import path from 'path'; // Necesario si usas plantillas de archivo
-import fs from 'fs/promises'; // Necesario si usas plantillas de archivo
-import Handlebars from 'handlebars'; // Ejemplo si usas Handlebars
+// import path from 'path'; // Necesario si usas plantillas de archivo
+// import fs from 'fs/promises'; // Necesario si usas plantillas de archivo
+// import Handlebars from 'handlebars'; // Ejemplo si usas Handlebars
 
 export class EmailNotificationService extends INotificationService {
     constructor(host, port, user, pass, defaultFrom, nodeEnv) { // añadir en un futuro , frontendUrl

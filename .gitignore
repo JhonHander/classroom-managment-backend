@@ -60,3 +60,6 @@ lerna-debug.log*
 .yarnrc.yml
 
 .idx/
+
+# SonarQube
+sonar-project.properties

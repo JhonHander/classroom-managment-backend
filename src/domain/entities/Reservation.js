@@ -1,5 +1,5 @@
 class Reservation {
-    constructor({ id, user, classroom, reservationStatus, date, startHour, finishHour, tokenQr, dateExpiration }) {
+    constructor({ id, user, classroom, reservationStatus, date, startHour, finishHour, tokenQr }) {
         this.id = id; // ID of the reservation
         this.user = user; // object containing user information
         this.classroom = classroom; // object containing classroom information
@@ -8,6 +8,6 @@ class Reservation {
         this.startHour = startHour; // Start hour of the reservation
         this.finishHour = finishHour; // Finish hour of the reservation
         this.tokenQr = tokenQr; // Token for QR code
-        this.dateExpiration = dateExpiration; // Expiration date of the token
+        // this.dateExpiration = dateExpiration; // Expiration date of the token
     }
 }
