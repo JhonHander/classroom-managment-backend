@@ -23,6 +23,9 @@ import { JsonWebTokenService } from '../infrastructure/services/JsonWebTokenServ
 import { HashingService } from '../infrastructure/services/HashingService.js';
 import { EmailNotificationService } from '../infrastructure/services/EmailNotificationService.js';
 
+// --- Importacion de casos de uso ---
+import { RegisterUserUseCase } from '../application/use-cases/auth/RegisterUserUseCase.js';
+
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -160,6 +163,14 @@ container.register('createClassroomUseCase', (c) => {
     return new CreateClassroomUseCase(c.resolve('classroomRepository'));
 });
 */
+
+container.register('registerUserUseCase', (c) => {
+    return new RegisterUserUseCase(
+      c.resolve('userRepository')
+    );
+  });
+  
+
 
 console.log('Container configured with dependencies.');
 export default container;
