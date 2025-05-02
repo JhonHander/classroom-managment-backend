@@ -4,3 +4,5 @@ class ClassroomType {
         this.name = name; // Name of the classroom type (e.g., laboratory, classroom, auditorium)
     }
 }
+
+export default ClassroomType;

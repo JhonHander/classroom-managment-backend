@@ -5,3 +5,5 @@ class Sensor {
         this.status = status; // Status of the sensor (e.g., active, inactive)
     }
 }
+
+export default Sensor;

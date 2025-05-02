@@ -7,3 +7,5 @@ class Schedule {
         this.finishHour = finishHour; // Finish hour of the schedule
     }
 }
+
+export default Schedule;

@@ -23,5 +23,6 @@ class Classroom {
     tieneCaracteristica(caracteristicaId) {
         return this.caracteristicas.some(c => c.id === caracteristicaId);
     }
-
 }
+
+export default Classroom;

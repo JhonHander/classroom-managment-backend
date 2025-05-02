@@ -1,4 +1,30 @@
 {
-    "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+  // Configuraciones de IA/Copilot que ya tenías
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true,
+  
+  // Editor general - configuraciones básicas útiles
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  
+  // JavaScript específicas
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "javascript.suggest.autoImports": true,
+  
+  // Prettier - para dar formato al código
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  
+  // Configuraciones básicas del workspace
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/coverage": true
+  },
+
+  // Destacar archivos modificados en pestañas
+  "workbench.editor.highlightModifiedTabs": true
 }

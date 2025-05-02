@@ -11,3 +11,5 @@ class Reservation {
         // this.dateExpiration = dateExpiration; // Expiration date of the token
     }
 }
+
+export default Reservation;
