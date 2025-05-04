@@ -33,12 +33,12 @@ const ClassroomModel = sequelize.define('Classroom', {
         field: 'classroom_full_name',
         // allowNull: true, // Depende de si la DB permite NULL antes de generar
     },
-    qrCode: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        unique: true,
-        field: 'qr_code',
-    },
+    // qrCode: {
+    //     type: DataTypes.STRING(100),
+    //     allowNull: false,
+    //     unique: true,
+    //     field: 'qr_code',
+    // },
     capacity: {
         type: DataTypes.INTEGER,
         allowNull: false,

@@ -37,11 +37,11 @@ const ReservationModel = sequelize.define('Reservation', {
         allowNull: false,
         field: 'finish_hour',
     },
-    token_qr: {
-        type: DataTypes.STRING(100),
-        allowNull: false,
-        field: 'token_qr',
-    },
+    // token_qr: {
+    //     type: DataTypes.STRING(100),
+    //     allowNull: false,
+    //     field: 'token_qr',
+    // },
     // dateExpiration: {
     //     type: DataTypes.DATEONLY,
     //     allowNull: false,

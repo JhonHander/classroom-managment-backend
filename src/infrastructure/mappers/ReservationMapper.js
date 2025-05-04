@@ -37,8 +37,8 @@ export class ReservationMapper {
             date: reservationModel.date,
             startHour: reservationModel.startHour,
             finishHour: reservationModel.finishHour,
-            tokenQr: reservationModel.tokenQr,
-            dateExpiration: reservationModel.dateExpiration,
+            // tokenQr: reservationModel.tokenQr,
+            // dateExpiration: reservationModel.dateExpiration,
         });
     }
 
@@ -57,8 +57,8 @@ export class ReservationMapper {
             date: reservation.date,
             startHour: reservation.startHour,
             finishHour: reservation.finishHour,
-            tokenQr: reservation.tokenQr,
-            dateExpiration: reservation.dateExpiration,
+            // tokenQr: reservation.tokenQr,
+            // dateExpiration: reservation.dateExpiration,
         };
     }
 }

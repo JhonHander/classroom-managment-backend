@@ -1,33 +1,49 @@
 import User from '../../../domain/entities/User.js';
 
 export class RegisterUserUseCase {
-  constructor(userRepository) {
+  constructor(userRepository, hashingService) {
     this.userRepository = userRepository;
+    this.hashingService = hashingService;
+    // this.emailNotificationService = emailNotificationService;
   }
 
-  async ejecutar({ name, lastName, email, password, role }) {
-    // Paso 1: verificar si ya existe un usuario con ese correo
-    const existente = await this.userRepository.findByEmail(email);
-    if (existente) {
-      throw new Error('Ya existe un usuario con ese correo');
+  async execute({ name, lastName, email, password, role }) {
+    // Step 1: Validate input
+    if (!email || !password || !name) {
+      throw new Error('Email, password and name are required');
     }
 
-    // Paso 2: (futuro) aquí irá el hash de la contraseña
-    // const hashedPassword = await this.hashingService.hash(password);
+    // Step 2: Check if user already exists
+    const existingUser = await this.userRepository.findByEmail(email);
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
 
-    // Paso 3: Crear la entidad del dominio
-    const nuevoUsuario = new User({
+    // Step 3: Hash password
+    const hashedPassword = await this.hashingService.hashPassword(password);
+
+    // Step 4: Create domain entity
+    const newUser = new User({
       name,
       lastName,
       email,
-      password, // más adelante será: hashedPassword
+      password: hashedPassword,
       role
     });
 
-    // Paso 4: Guardar el usuario en la base de datos
-    const guardado = await this.userRepository.create(nuevoUsuario);
+    // Step 5: Save user to database
+    const savedUser = await this.userRepository.create(newUser);
 
-    // Paso 5: Devolver el usuario creado
-    return guardado;
+    // Step 6: Send welcome email (non-blocking)
+    try {
+      await this.emailNotificationService.sendRegistrationThankYouEmail(email, name);
+    } catch (error) {
+      // Log the error but don't fail the registration
+      console.error('Failed to send welcome email:', error);
+    }
+
+    // Step 7: Return created user (without password)
+    const { password: _, ...userWithoutPassword } = savedUser;
+    return userWithoutPassword;
   }
 }

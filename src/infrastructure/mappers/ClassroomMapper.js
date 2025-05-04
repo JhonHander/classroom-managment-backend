@@ -29,7 +29,7 @@ export class ClassroomMapper {
       block: classroomModel.block,
       classroomNumber: classroomModel.classroomNumber,
       classroomFullName: classroomModel.classroomFullName,
-      qrCode: classroomModel.qrCode,
+      // qrCode: classroomModel.qrCode,
       capacity: classroomModel.capacity
     });
   }
@@ -49,7 +49,7 @@ export class ClassroomMapper {
       block: classroom.block,
       classroomNumber: classroom.number,
       // classroomFullName es generado por la BD
-      qrCode: classroom.qrCode,
+      // qrCode: classroom.qrCode,
       capacity: classroom.capacity,
       // Las características (M-N) se manejan por separado (ej: setFeatures) en el repositorio
     };

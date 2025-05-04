@@ -25,6 +25,8 @@ import { EmailNotificationService } from '../infrastructure/services/EmailNotifi
 
 // --- Importacion de casos de uso ---
 import { RegisterUserUseCase } from '../application/use-cases/auth/RegisterUserUseCase.js';
+import { LoginUserUseCase } from '../application/use-cases/auth/LoginUserUseCase.js';
+import { VerifyTokenUseCase } from '../application/use-cases/auth/VerifyTokenUseCase.js';
 
 import dotenv from 'dotenv';
 
@@ -166,11 +168,26 @@ container.register('createClassroomUseCase', (c) => {
 
 container.register('registerUserUseCase', (c) => {
     return new RegisterUserUseCase(
-      c.resolve('userRepository')
+      c.resolve('userRepository'),
+      c.resolve('hashingService'), // Inyectar el servicio de hashing
+      c.resolve('emailNotificationService') // Inyectar el servicio de notificación
     );
-  });
-  
+});
 
+container.register('loginUserUseCase', (c) => {
+    return new LoginUserUseCase(
+      c.resolve('userRepository'),
+      c.resolve('hashingService'),
+      c.resolve('jwtService')
+    );
+});
+
+container.register('verifyTokenUseCase', (c) => {
+  return new VerifyTokenUseCase(
+    c.resolve('jwtService'),
+    c.resolve('userRepository')
+  );
+});
 
 console.log('Container configured with dependencies.');
 export default container;
