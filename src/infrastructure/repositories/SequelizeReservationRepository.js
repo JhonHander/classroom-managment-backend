@@ -1,4 +1,4 @@
-import { IReservationRepository } from '../../domain/repositories/IReservationRepository.js';
+import IReservationRepository from '../../domain/repositories/IReservationRepository.js';
 import { ReservationMapper } from '../mappers/ReservationMapper.js';
 import { Op } from 'sequelize'; // Necesario para consultas complejas
 

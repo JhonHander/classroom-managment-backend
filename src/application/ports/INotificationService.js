@@ -1,4 +1,4 @@
-export class INotificationService {
+class INotificationService {
 
     // async sendPushNotification(userId, title, body, message) {
     //     throw new Error('Method not implemented');
@@ -23,3 +23,5 @@ export class INotificationService {
 }
 // This interface defines the contract for a notification service.
 // It includes a method for sending notifications.
+
+export default INotificationService;

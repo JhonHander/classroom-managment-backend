@@ -1,5 +1,5 @@
 // Interfaz para el repositorio de Horarios
-export class IScheduleRepository {
+class IScheduleRepository {
     // CRUD básico
     async create(schedule) { throw new Error("Method not implemented"); }
     async findAll() { throw new Error("Method not implemented"); }
@@ -14,3 +14,5 @@ export class IScheduleRepository {
     async getSchedulesByClassroomIdAndDate(classroomId, date) { throw new Error("Method not implemented"); }
     async getSchedulesByClassroomIdAndDateAndTime(classroomId, date, startTime, endTime) { throw new Error("Method not implemented"); }
 }
+
+export default IScheduleRepository;

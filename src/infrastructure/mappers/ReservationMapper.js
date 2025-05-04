@@ -1,4 +1,4 @@
-import { Reservation } from '../../domain/entities/Reservation.js';
+import Reservation from '../../domain/entities/Reservation.js';
 import { UserMapper } from './UserMapper.js';
 import { ClassroomMapper } from './ClassroomMapper.js';
 import { ReservationStatusMapper } from './ReservationStatusMapper.js';

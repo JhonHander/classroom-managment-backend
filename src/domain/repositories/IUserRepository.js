@@ -1,5 +1,5 @@
 // Interfaz para el repositorio de Usuarios
-export class IUserRepository {
+class IUserRepository {
     async save(user) { throw new Error("Method not implemented"); }
     //CRUD básico para User
     async create(user) { throw new Error("Method not implemented"); }
@@ -12,6 +12,6 @@ export class IUserRepository {
     async findById(id) { throw new Error("Method not implemented"); }
     async findByEmail(email) { throw new Error("Method not implemented"); }
     async findByEmailAndId(email, dni) { throw new Error("Method not implemented"); }
-
-
 }
+
+export default IUserRepository;

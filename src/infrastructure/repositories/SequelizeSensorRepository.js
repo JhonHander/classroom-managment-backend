@@ -1,4 +1,4 @@
-import { ISensorRepository } from "../../domain/repositories/ISensorRepository.js";
+import ISensorRepository from "../../domain/repositories/ISensorRepository.js";
 import { SensorMapper } from "../mappers/SensorMapper.js";
 import { Op } from 'sequelize'; // Necesario para algunas consultas
 

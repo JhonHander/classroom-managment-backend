@@ -1,4 +1,4 @@
-export class ISensorRepository {
+class ISensorRepository {
     // CRUD básico
     async create(sensor) { throw new Error("Method not implemented"); }
     async findAll() { throw new Error("Method not implemented"); }
@@ -12,3 +12,5 @@ export class ISensorRepository {
     async findInactiveSensors() { throw new Error("Method not implemented"); }
     async updateSensorStatus(sensorId, status) { throw new Error("Method not implemented"); }
 }
+
+export default ISensorRepository;

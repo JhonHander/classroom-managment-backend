@@ -1,6 +1,6 @@
 // This use case handles the login process for a user.
 
-export class LoginUserUseCase {
+class LoginUserUseCase {
   constructor(userRepository, hashingService, jwtService) {
     this.userRepository = userRepository;
     this.hashingService = hashingService;
@@ -46,3 +46,5 @@ export class LoginUserUseCase {
     };
   }
 }
+
+export default LoginUserUseCase;

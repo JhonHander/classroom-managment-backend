@@ -1,4 +1,4 @@
-import { User } from '../../domain/entities/User.js';
+import User from '../../domain/entities/User.js';
 import { RoleMapper } from './RoleMapper.js'; // Importa el RoleMapper
 
 export class UserMapper {

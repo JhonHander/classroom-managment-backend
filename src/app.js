@@ -1,12 +1,48 @@
 import express from 'express';
-import userRoutes from './interfaces/routes/user.routes.js'; // ruta que acabas de crear
+import cors from 'express'; // Para permitir solicitudes cross-origin
+import morgan from 'morgan'; // Para logging de solicitudes HTTP
+import { connect } from './config/database.js'; // Importar la función de conexión a la BD
+import userRoutes from './interfaces/routes/user.routes.js';
+// import classroomRoutes from './interfaces/routes/classroom.routes.js';
 
 const app = express();
-app.use(express.json()); // para poder leer JSON en el body
 
-// Usamos la ruta base /usuarios
-app.use('/usuarios', userRoutes);
+// Middleware básico
+app.use(express.json()); // Para parsear JSON en el body
+app.use(express.urlencoded({ extended: true })); // Para parsear formularios
+app.use(cors()); // Habilitar CORS para todas las rutas
 
-app.listen(3000, () => {
-  console.log('Servidor corriendo en el puerto 3000');
+// Logging en desarrollo
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Conectar a la base de datos
+connect()
+  .then(() => console.log('Database connected successfully'))
+  .catch(err => console.error('Failed to connect to database:', err));
+
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to Classroom Management API' });
 });
+
+// Rutas de la API
+app.use('/api/users', userRoutes);
+// app.use('/api/classrooms', classroomRoutes);
+
+// Middleware para manejar rutas no encontradas
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+// Middleware para manejar errores
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    message: 'Internal server error', 
+    error: process.env.NODE_ENV === 'development' ? err.message : {}
+  });
+});
+
+export default app;

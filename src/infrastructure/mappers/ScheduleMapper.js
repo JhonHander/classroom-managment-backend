@@ -1,4 +1,4 @@
-import { Schedule } from '../../domain/entities/Schedule.js';
+import Schedule from '../../domain/entities/Schedule.js';
 import { ClassroomMapper } from './ClassroomMapper.js';
 
 export class ScheduleMapper {

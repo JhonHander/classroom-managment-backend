@@ -1,4 +1,4 @@
-import { ReservationStatus } from '../../domain/entities/ReservationStatus.js';
+import ReservationStatus from '../../domain/entities/ReservationStatus.js';
 
 export class ReservationStatusMapper {
 

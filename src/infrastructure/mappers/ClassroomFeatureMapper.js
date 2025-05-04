@@ -1,4 +1,4 @@
-import { ClassroomFeature } from '../../domain/entities/ClassroomFeature.js';
+import ClassroomFeature from '../../domain/entities/ClassroomFeature.js';
 
 export class ClassroomFeatureMapper {
 

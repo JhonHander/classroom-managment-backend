@@ -1,5 +1,5 @@
 //Interfaz para el repositorio de Reservas
-export class IReservationRepository {
+class IReservationRepository {
     // CRUD básico
     async create(reservation) { throw new Error("Method not implemented"); }
     async findAll() { throw new Error("Method not implemented"); }
@@ -17,3 +17,5 @@ export class IReservationRepository {
     async findByTokenQr(token) { throw new Error("Method not implemented"); }
     async findByUserIdAndDate(userId, date) { throw new Error("Method not implemented"); }
 }
+
+export default IReservationRepository;

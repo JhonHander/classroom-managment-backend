@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { IJwtService } from '../../application/ports/IJwtService.js';
+import IJwtService from '../../application/ports/IJwtService.js';
 
-export class JsonWebTokenService extends IJwtService {
+class JsonWebTokenService extends IJwtService {
     constructor(secret, defaultExpiresIn = '1h') {
         // Call the parent constructor
         super();
@@ -34,5 +34,7 @@ export class JsonWebTokenService extends IJwtService {
         }
     }
 }
+
+export default JsonWebTokenService;
 
 // npm install bcrypt jsonwebtoken

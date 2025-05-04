@@ -1,4 +1,4 @@
-import { Role } from '../../domain/entities/Role.js';
+import Role from '../../domain/entities/Role.js';
 
 export class RoleMapper {
 

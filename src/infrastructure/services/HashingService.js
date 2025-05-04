@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
-import { IHashingService } from '../../application/ports/IHashingService';
+import IHashingService from '../../application/ports/IHashingService.js';
 
-export class HashingService extends IHashingService {
+class HashingService extends IHashingService {
     constructor(saltRounds = 10) {
         // Call the parent constructor
         super();
@@ -16,3 +16,5 @@ export class HashingService extends IHashingService {
         return await bcrypt.compare(password, hashedPassword);
     }
 }
+
+export default HashingService;

@@ -1,4 +1,4 @@
-import { Sensor } from '../../domain/entities/Sensor.js';
+import Sensor from '../../domain/entities/Sensor.js';
 
 export class SensorMapper {
 

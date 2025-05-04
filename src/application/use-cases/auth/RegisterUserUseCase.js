@@ -1,6 +1,6 @@
 import User from '../../../domain/entities/User.js';
 
-export class RegisterUserUseCase {
+class RegisterUserUseCase {
   constructor(userRepository, hashingService) {
     this.userRepository = userRepository;
     this.hashingService = hashingService;
@@ -34,16 +34,18 @@ export class RegisterUserUseCase {
     // Step 5: Save user to database
     const savedUser = await this.userRepository.create(newUser);
 
-    // Step 6: Send welcome email (non-blocking)
-    try {
-      await this.emailNotificationService.sendRegistrationThankYouEmail(email, name);
-    } catch (error) {
-      // Log the error but don't fail the registration
-      console.error('Failed to send welcome email:', error);
-    }
+    // // Step 6: Send welcome email (non-blocking)
+    // try {
+    //   await this.emailNotificationService.sendRegistrationThankYouEmail(email, name);
+    // } catch (error) {
+    //   // Log the error but don't fail the registration
+    //   console.error('Failed to send welcome email:', error);
+    // }
 
     // Step 7: Return created user (without password)
     const { password: _, ...userWithoutPassword } = savedUser;
     return userWithoutPassword;
   }
 }
+
+export default RegisterUserUseCase;

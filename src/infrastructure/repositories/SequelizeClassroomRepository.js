@@ -94,7 +94,7 @@
 //   }
 // }
 
-import { IClassroomRepository } from '../../domain/repositories/IClassroomRepository.js';
+import IClassroomRepository from '../../domain/repositories/IClassroomRepository.js';
 import { ClassroomMapper } from '../mappers/ClassroomMapper.js';
 import { Op } from 'sequelize'; // Necesario para consultas complejas
 

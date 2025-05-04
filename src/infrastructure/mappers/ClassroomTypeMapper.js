@@ -1,4 +1,4 @@
-import { ClassroomType } from '../../domain/entities/ClassroomType.js'
+import  ClassroomType  from '../../domain/entities/ClassroomType.js';
 
 export class ClassroomTypeMapper {
 

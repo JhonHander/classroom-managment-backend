@@ -1,4 +1,4 @@
-import { IUserRepository } from '../../domain/repositories/IUserRepository.js';
+import IUserRepository from '../../domain/repositories/IUserRepository.js';
 import { UserMapper } from '../mappers/UserMapper.js';
 import { Op } from 'sequelize';
 

@@ -1,4 +1,4 @@
-export class FindAvailableClassroomsUseCase {
+class FindAvailableClassroomsUseCase {
   constructor(classroomRepository, scheduleRepository, reservationRepository) {
     this.classroomRepository = classroomRepository;
     this.scheduleRepository = scheduleRepository;
@@ -69,3 +69,5 @@ export class FindAvailableClassroomsUseCase {
     return filteredClassrooms;
   }
 }
+
+export default FindAvailableClassroomsUseCase;

@@ -1,4 +1,4 @@
-export class IJwtService {
+class IJwtService {
     async generateToken(userId) {
         throw new Error('Method not implemented');
     }
@@ -9,3 +9,5 @@ export class IJwtService {
 }
 // This interface defines the contract for a JWT service.
 // It includes methods for generating and verifying JWT tokens.
+
+export default IJwtService;

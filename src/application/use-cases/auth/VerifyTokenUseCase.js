@@ -1,4 +1,4 @@
-export class VerifyTokenUseCase {
+class VerifyTokenUseCase {
   constructor(jwtService, userRepository) {
     this.jwtService = jwtService;
     this.userRepository = userRepository;
@@ -35,3 +35,5 @@ export class VerifyTokenUseCase {
     };
   }
 }
+
+export default VerifyTokenUseCase;

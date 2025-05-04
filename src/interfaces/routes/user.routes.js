@@ -1,9 +1,26 @@
-import express from 'express';
-import { registerUser } from '../controllers/UserController.js';
+import { Router } from 'express';
+import { UserController } from '../controllers/UserController.js';
 
-const router = express.Router();
+const router = Router();
+const userController = new UserController();
 
-// Ruta POST para registrar usuario
-router.post('/registro', registerUser);
+/**
+ * @route POST /api/users/register
+ * @desc Register a new user
+ * @access Public
+ */
+router.post('/register', (req, res) => userController.register(req, res));
+
+/**
+ * @route POST /api/users/login
+ * @desc Login user and get token
+ * @access Public
+ */
+router.post('/login', (req, res) => userController.login(req, res));
+
+// Additional routes can be added here later
+// router.get('/profile', authMiddleware, (req, res) => userController.getProfile(req, res));
+// router.put('/profile', authMiddleware, (req, res) => userController.updateProfile(req, res));
+// router.get('/:id', authMiddleware, adminMiddleware, (req, res) => userController.getUserById(req, res));
 
 export default router;

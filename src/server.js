@@ -1,16 +1,14 @@
-// import 'reflect-metadata'; // ¡Importante! Debe ser la primera importación
-// // ... el resto de tus importaciones y código (require o import según tu setup)
-// import express from 'express';
-// import dotenv from 'dotenv';
-// // ...etc.
+import dotenv from 'dotenv';
+import app from './app.js';
 
-// dotenv.config();
+// Cargar variables de entorno
+dotenv.config();
 
-// const app = express();
-// const port = process.env.PORT || 3000;
+// Definir puerto
+const PORT = process.env.PORT || 3000;
 
-// // ... configuración de express, middlewares, etc.
-
-// app.listen(port, () => {
-//   console.log(`Server listening on port ${port}`);
-// });
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});

@@ -1,7 +1,7 @@
-import { Reservation } from '../../domain/entities/Reservation.js';
-import { ApplicationError } from '../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
+import Reservation from '../../../domain/entities/Reservation.js';
+import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
 
-export class CreateReservationUseCase {
+class CreateReservationUseCase {
     // Inyecta las INTERFACES de repositorio necesarias
     constructor(reservationRepository, classroomRepository, userRepository, scheduleRepository) {
         this.reservationRepository = reservationRepository;
@@ -70,3 +70,5 @@ export class CreateReservationUseCase {
         return createdReservation; // Devuelve la entidad de dominio creada
     }
 }
+
+export default CreateReservationUseCase;

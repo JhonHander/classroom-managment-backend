@@ -1,4 +1,4 @@
-import { IScheduleRepository } from '../../domain/repositories/IScheduleRepository.js'; // Asegúrate que existe
+import IScheduleRepository from '../../domain/repositories/IScheduleRepository.js'; // Asegúrate que existe
 import { ScheduleMapper } from '../mappers/ScheduleMapper.js'; // Asegúrate que existe
 import { Op } from 'sequelize';
 

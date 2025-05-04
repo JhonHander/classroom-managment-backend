@@ -19,14 +19,14 @@ import { SequelizeUserRepository } from '../infrastructure/repositories/Sequeliz
 import { SequelizeSensorRepository } from '../infrastructure/repositories/SequelizeSensorRepository.js';
 
 // --- Importación de Servicios ---
-import { JsonWebTokenService } from '../infrastructure/services/JsonWebTokenService.js';
-import { HashingService } from '../infrastructure/services/HashingService.js';
-import { EmailNotificationService } from '../infrastructure/services/EmailNotificationService.js';
+import JsonWebTokenService from '../infrastructure/services/JsonWebTokenService.js';
+import HashingService from '../infrastructure/services/HashingService.js';
+import EmailNotificationService from '../infrastructure/services/EmailNotificationService.js';
 
 // --- Importacion de casos de uso ---
-import { RegisterUserUseCase } from '../application/use-cases/auth/RegisterUserUseCase.js';
-import { LoginUserUseCase } from '../application/use-cases/auth/LoginUserUseCase.js';
-import { VerifyTokenUseCase } from '../application/use-cases/auth/VerifyTokenUseCase.js';
+import RegisterUserUseCase from '../application/use-cases/auth/RegisterUserUseCase.js';
+import LoginUserUseCase from '../application/use-cases/auth/LoginUserUseCase.js';
+import VerifyTokenUseCase from '../application/use-cases/auth/VerifyTokenUseCase.js';
 
 import dotenv from 'dotenv';
 

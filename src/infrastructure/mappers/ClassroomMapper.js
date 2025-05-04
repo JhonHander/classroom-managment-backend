@@ -1,4 +1,4 @@
-import { Classroom } from '../../domain/entities/Classroom.js';
+import  Classroom  from '../../domain/entities/Classroom.js';
 // Importa los mappers específicos para las asociaciones
 import { ClassroomTypeMapper } from './ClassroomTypeMapper.js';
 // import { ClassroomFeatureMapper } from './ClassroomFeatureMapper.js';
