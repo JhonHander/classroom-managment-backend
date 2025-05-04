@@ -1,11 +1,11 @@
 // filepath: c:\Users\jhonh\OneDrive\Escritorio\Clases_U\programacion_movil\classroom-managment-backend\src\config\database.js
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
-// Importa la función que define las asociaciones
-import defineAssociations from '../infrastructure/db/models/associations.js';
+import initModels from '../infrastructure/db/models/index.js';
 
 dotenv.config();
 
+// Crear instancia de Sequelize
 export const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -18,19 +18,13 @@ export const sequelize = new Sequelize(
   }
 );
 
-// Variable para asegurar que las asociaciones se definan solo una vez
-let associationsDefined = false;
+// Inicializar modelos y establecer sus relaciones
+export const models = initModels(sequelize);
 
 export const connect = async () => {
   try {
     await sequelize.authenticate();
     console.log('Conexión a la base de datos establecida correctamente.');
-    // Define asociaciones después de autenticar si aún no se han definido
-    if (!associationsDefined) {
-      defineAssociations(); // Llama a la función exportada desde associations.js
-      associationsDefined = true;
-      console.log('Asociaciones de Sequelize definidas.');
-    }
   } catch (error) {
     console.error('No se pudo conectar a la base de datos:', error);
     process.exit(1);
@@ -39,12 +33,6 @@ export const connect = async () => {
 
 export const sync = async (options = {}) => {
   try {
-    // Asegúrate que las asociaciones estén definidas antes de sincronizar
-    if (!associationsDefined) {
-      defineAssociations();
-      associationsDefined = true;
-      console.log('Asociaciones de Sequelize definidas antes de sync.');
-    }
     await sequelize.sync(options);
     console.log('Modelos sincronizados con la base de datos.');
   } catch (error) {

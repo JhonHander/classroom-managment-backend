@@ -1,19 +1,24 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../../../config/database.js';
 
-const RoleModel = sequelize.define('Role', {
+// En lugar de importar la instancia de sequelize, definiremos una función
+// que toma sequelize como parámetro
+const defineRoleModel = (sequelize) => {
+  const RoleModel = sequelize.define('Role', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
     name: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
+      type: DataTypes.STRING(50),
+      allowNull: false,
     },
-}, {
-    tableName: 'Role', // Nombre exacto de la tabla en la BD
-    timestamps: false, // Deshabilita createdAt y updatedAt si no existen en la tabla
-});
+  }, {
+    tableName: 'Role',
+    timestamps: false,
+  });
 
-export default RoleModel;
+  return RoleModel;
+};
+
+export default defineRoleModel;

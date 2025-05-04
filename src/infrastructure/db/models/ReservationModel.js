@@ -1,55 +1,62 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../../../config/database.js'; // Ajusta la ruta si es necesario
 
-const ReservationModel = sequelize.define('Reservation', {
+const defineReservationModel = (sequelize) => {
+  const ReservationModel = sequelize.define('Reservation', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
     userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'user_id',
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'user_id',
     },
     classroomId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'classroom_id',
-    },
-    reservationStatusId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        field: 'reservation_status_id',
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'classroom_id',
     },
     date: {
-        type: DataTypes.DATEONLY,
-        allowNull: false,
-        field: 'date',
+      type: DataTypes.DATEONLY,
+      allowNull: false,
     },
-    startHour: {
-        type: DataTypes.TIME,
-        allowNull: false,
-        field: 'start_hour',
+    startTime: {
+      type: DataTypes.TIME,
+      allowNull: false,
+      field: 'start_time',
     },
-    finishHour: {
-        type: DataTypes.TIME,
-        allowNull: false,
-        field: 'finish_hour',
+    endTime: {
+      type: DataTypes.TIME,
+      allowNull: false,
+      field: 'end_time',
     },
-    // token_qr: {
-    //     type: DataTypes.STRING(100),
-    //     allowNull: false,
-    //     field: 'token_qr',
-    // },
-    // dateExpiration: {
-    //     type: DataTypes.DATEONLY,
-    //     allowNull: false,
-    //     field: 'date_expiration',
-    // },
-}, {
-    tableName: 'Reservation', // Nombre exacto de la tabla en la BD
-    timestamps: false, // Deshabilita createdAt y updatedAt si no existen en la tabla
-});
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    reservationStatusId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1, // Pendiente por defecto
+      field: 'reservation_status_id',
+    },
+    qrToken: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'qr_token',
+    },
+    expirationDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'expiration_date',
+    },
+  }, {
+    tableName: 'Reservation',
+    timestamps: false,
+  });
 
-export default ReservationModel;
+  return ReservationModel;
+};
+
+export default defineReservationModel;

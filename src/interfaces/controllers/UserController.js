@@ -1,10 +1,9 @@
-import container from '../../config/container.js';
 import { RegisterUserDTO } from '../dtos/RegisterUserDTO.js';
 
-export class UserController {
-  constructor() {
-    this.registerUserUseCase = container.resolve('registerUserUseCase');
-    this.loginUserUseCase = container.resolve('loginUserUseCase');
+class UserController {
+  constructor(registerUserUseCase, loginUserUseCase) {
+    this.registerUserUseCase = registerUserUseCase;
+    this.loginUserUseCase = loginUserUseCase;
   }
 
   /**
@@ -100,3 +99,5 @@ export class UserController {
     }
   }
 }
+
+export default UserController;

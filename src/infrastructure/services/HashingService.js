@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import IHashingService from '../../application/ports/IHashingService.js';
+import { IHashingService } from '../../application/ports/IHashingService.js';
 
 class HashingService extends IHashingService {
     constructor(saltRounds = 10) {

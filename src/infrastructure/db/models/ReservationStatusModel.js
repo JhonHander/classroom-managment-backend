@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../../../config/database.js';
 
-const ReservationStatusModel = sequelize.define('ReservationStatus', {
+const defineReservationStatusModel = (sequelize) => {
+    const ReservationStatusModel = sequelize.define('ReservationStatus', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -15,5 +15,7 @@ const ReservationStatusModel = sequelize.define('ReservationStatus', {
     tableName: 'ReservationStatus', // Nombre exacto de la tabla en la BD
     timestamps: false,
 });
+    return ReservationStatusModel;
+};
 
-export default ReservationStatusModel;
+export default defineReservationStatusModel;

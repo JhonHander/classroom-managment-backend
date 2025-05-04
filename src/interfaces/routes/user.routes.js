@@ -1,8 +1,10 @@
 import { Router } from 'express';
-import { UserController } from '../controllers/UserController.js';
+import container from '../../config/container.js';
 
 const router = Router();
-const userController = new UserController();
+
+// Obtener el controlador del contenedor
+const userController = container.resolve('userController');
 
 /**
  * @route POST /api/users/register

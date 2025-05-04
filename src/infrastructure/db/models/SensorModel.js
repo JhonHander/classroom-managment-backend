@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../../../config/database.js';
 
-const SensorModel = sequelize.define('Sensor', {
+const defineSensorModel = (sequelize) => {
+    const SensorModel = sequelize.define('Sensor', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -18,11 +18,13 @@ const SensorModel = sequelize.define('Sensor', {
         allowNull: false, // Asumiendo que siempre debe tener un estado, aunque tenga default
         defaultValue: 'activo', // Establece el valor por defecto
     },
-}, {
+    }, {
     tableName: 'Sensor', // Nombre exacto de la tabla en la BD
     timestamps: false,
-});
+    });
+    return SensorModel;
+}
 
 // La asociación con ClassroomModel (Aulas) se definirá en el archivo central de modelos/asociaciones.
 
-export default SensorModel;
+export default defineSensorModel;
