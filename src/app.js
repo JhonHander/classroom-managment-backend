@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'express'; // Para permitir solicitudes cross-origin
 import morgan from 'morgan'; // Para logging de solicitudes HTTP
-import { connect } from './config/database.js'; // Importar la función de conexión a la BD
+import { connect, sync } from './config/database.js'; // Importar la función de conexión a la BD
 import userRoutes from './interfaces/routes/user.routes.js';
 // import classroomRoutes from './interfaces/routes/classroom.routes.js';
 
@@ -19,8 +19,14 @@ if (process.env.NODE_ENV === 'development') {
 
 // Conectar a la base de datos
 connect()
-  .then(() => console.log('Database connected successfully'))
-  .catch(err => console.error('Failed to connect to database:', err));
+  .then(() => {
+    console.log('Database connected successfully');
+    // Luego sincronizar (solo en desarrollo)
+    if (process.env.NODE_ENV === 'development') {
+      return sync();
+    }
+  })
+  .catch(err => console.error('Database error:', err));
 
 // Ruta de prueba
 app.get('/', (req, res) => {
