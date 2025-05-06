@@ -1,5 +1,5 @@
 import User from '../../domain/entities/User.js';
-import { RoleMapper } from './RoleMapper.js'; // Importa el RoleMapper
+import { RoleMapper } from './RoleMapper.js';
 
 export class UserMapper {
 
@@ -12,8 +12,7 @@ export class UserMapper {
   static toDomain(userModel) {
     if (!userModel) return null;
 
-    // Mapeo del rol asociado usando RoleMapper
-    // Asume que la asociación se llama 'role' (definido con as: 'role') y se cargó con include
+    // Map the role
     const role = userModel.role ? RoleMapper.toDomain(userModel.role) : null;
 
     if (!role) {
@@ -22,10 +21,10 @@ export class UserMapper {
 
     return new User({
       id: userModel.id,
-      role: role, // Pasa el objeto Role mapeado
-      name: userModel.nombre,
-      lastName: userModel.apellido,
-      email: userModel.correo,
+      role: role,
+      name: userModel.name,
+      lastName: userModel.lastName,
+      email: userModel.email,
       password: userModel.password,
     });
   }
@@ -42,11 +41,11 @@ export class UserMapper {
     // Devuelve un objeto plano para Sequelize
     return {
       id: user.id,
-      roleId: user.role ? user.role.id : null, // Usa el ID del rol para la FK
+      roleId: user.role.id, // Match the model field 'roleId'
       name: user.name,
-      lastName: user.lastName,
+      lastName: user.lastName, // Match the model field 'lastName'
       email: user.email,
-      password: user.password, // Asegúrate de que este campo sea el correcto en tu modelo
+      password: user.password,
     };
   }
 }

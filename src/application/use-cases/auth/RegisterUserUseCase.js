@@ -1,10 +1,10 @@
-import User from '../../../domain/entities/User.js';
-
 class RegisterUserUseCase {
-  constructor(userRepository, hashingService) {
+  constructor(userRepository, hashingService, userEntityFactory, roleEntityFactory, emailNotificationService) {
     this.userRepository = userRepository;
     this.hashingService = hashingService;
-    // this.emailNotificationService = emailNotificationService;
+    this.userEntityFactory = userEntityFactory; 
+    this.roleEntityFactory = roleEntityFactory;
+    this.emailNotificationService = emailNotificationService;
   }
 
   async execute({ name, lastName, email, password, role }) {
@@ -22,28 +22,41 @@ class RegisterUserUseCase {
     // Step 3: Hash password
     const hashedPassword = await this.hashingService.hashPassword(password);
 
-    // Step 4: Create domain entity
-    const newUser = new User({
+    // Step 4: Create role object using the factory
+    const roleId = role || 3;
+    const roleName = roleId === 1 ? 'admin' : (roleId === 2 ? 'teacher' : 'student');
+    const roleObject = this.roleEntityFactory({ id: roleId, name: roleName });
+
+    // Step 5: Create user entity using the factory
+    const newUser = this.userEntityFactory({
       name,
       lastName,
       email,
       password: hashedPassword,
-      role
+      role: roleObject
     });
 
-    // Step 5: Save user to database
+    // Step 6: Save user to database
     const savedUser = await this.userRepository.create(newUser);
 
-    // // Step 6: Send welcome email (non-blocking)
-    // try {
-    //   await this.emailNotificationService.sendRegistrationThankYouEmail(email, name);
-    // } catch (error) {
-    //   // Log the error but don't fail the registration
-    //   console.error('Failed to send welcome email:', error);
-    // }
+    // Step 7: Send welcome email (non-blocking)
+    try {
+      await this.emailNotificationService.sendRegistrationThankYouEmail(email, name);
+      console.log('Welcome email sent successfully to', email);
+    } catch (error) {
+      // Log the error but don't fail the registration
+      console.error('Failed to send welcome email:', error);
+    }
 
-    // Step 7: Return created user (without password)
-    const { password: _, ...userWithoutPassword } = savedUser;
+    // Step 8: Return created user (without password)
+    const userWithoutPassword = {
+      id: savedUser.id,
+      name: savedUser.name,
+      lastName: savedUser.lastName,
+      email: savedUser.email,
+      role: savedUser.role
+    };
+    
     return userWithoutPassword;
   }
 }

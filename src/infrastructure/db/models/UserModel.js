@@ -10,7 +10,7 @@ const defineUserModel = (sequelize) => {
     roleId: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: 1,
+        // defaultValue: 1,
         field: 'role_id',
     },
     name: {

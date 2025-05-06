@@ -15,8 +15,7 @@
     "test": "jest",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "sync-db": "node src/scripts/syncDb.js"
-
+    "sync-db": "node src/scripts/syncSequelizeWithDb.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

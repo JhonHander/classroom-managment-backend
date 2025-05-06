@@ -1,5 +1,9 @@
 import { sequelize, models } from './database.js';
 
+// --- Importación de entidades del dominio ---
+import User from '../domain/entities/User.js';
+import Role from '../domain/entities/Role.js';
+
 // --- Importación de las implementaciones de Repositorio ---
 import { SequelizeClassroomRepository } from '../infrastructure/repositories/SequelizeClassroomRepository.js';
 import { SequelizeReservationRepository } from '../infrastructure/repositories/SequelizeReservationRepository.js';
@@ -87,51 +91,63 @@ const container = new AppContainer();
 // 1. Sequelize (Singleton)
 container.register('sequelize', sequelize, { singleton: true });
 
-// 2. Modelos Sequelize (Singletons)
-Object.keys(models).forEach(modelName => {
-    container.register(modelName, models[modelName], { singleton: true });
-});
+// 2. Modelos de Sequelize como un objeto completo
+container.register('sequelizeModels', models, { singleton: true });
 
-// 3. Repositorios (Singletons, inyectando modelos)
+// 3. Repositorios (Singletons, inyectando modelos desde el objeto models)
+container.register('userRepository', (c) => {
+    const models = c.resolve('sequelizeModels');
+    return new SequelizeUserRepository(
+        models.UserModel,
+        models.RoleModel
+    );
+}, { singleton: true });
+
 container.register('classroomRepository', (c) => {
+    const models = c.resolve('sequelizeModels');
     return new SequelizeClassroomRepository(
-        c.resolve('ClassroomModel'),
-        c.resolve('ClassroomTypeModel'),
-        c.resolve('ClassroomFeatureModel')
+        models.ClassroomModel,
+        models.ClassroomTypeModel,
+        models.ClassroomFeatureModel
     );
 }, { singleton: true });
 
 container.register('reservationRepository', (c) => {
+    const models = c.resolve('sequelizeModels');
     return new SequelizeReservationRepository(
-        c.resolve('ReservationModel'),
-        c.resolve('UserModel'),
-        c.resolve('ClassroomModel'),
-        c.resolve('ReservationStatusModel')
+        models.ReservationModel,
+        models.UserModel,
+        models.ClassroomModel,
+        models.ReservationStatusModel
     );
 }, { singleton: true });
 
 container.register('scheduleRepository', (c) => {
+    const models = c.resolve('sequelizeModels');
     return new SequelizeScheduleRepository(
-        c.resolve('ScheduleModel'),
-        c.resolve('ClassroomModel')
-    );
-}, { singleton: true });
-
-container.register('userRepository', (c) => {
-    return new SequelizeUserRepository(
-        c.resolve('UserModel'),
-        c.resolve('RoleModel')
+        models.ScheduleModel,
+        models.ClassroomModel
     );
 }, { singleton: true });
 
 container.register('sensorRepository', (c) => {
+    const models = c.resolve('sequelizeModels');
     return new SequelizeSensorRepository(
-        c.resolve('SensorModel'),
-        c.resolve('ClassroomModel')
+        models.SensorModel,
+        models.ClassroomModel
     );
 }, { singleton: true });
 
-// 4. Servicios
+// 4. Factories para entidades del dominio (funciones que crean instancias de las entidades)
+container.register('userEntityFactory', () => {
+  return (data) => new User(data);
+}, { singleton: true });
+
+container.register('roleEntityFactory', () => {
+  return (data) => new Role(data);
+}, { singleton: true });
+
+// 5. Servicios
 container.register('hashingService', () => {
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
     return new HashingService(saltRounds);
@@ -143,29 +159,31 @@ container.register('jwtService', () => {
     return new JsonWebTokenService(secret, expiresIn);
 }, { singleton: true });
 
-// container.register('emailNotificationService', () => {
-//     const host = process.env.SMTP_HOST;
-//     const port = process.env.SMTP_PORT;
-//     const user = process.env.SMTP_USER;
-//     const pass = process.env.SMTP_PASSWORD;
-//     const defaultFrom = process.env.EMAIL_FROM;
-//     const nodeEnv = process.env.NODE_ENV;
-//     return new EmailNotificationService(
-//         host,
-//         port,
-//         user,
-//         pass,
-//         defaultFrom,
-//         nodeEnv
-//     );
-// }, { singleton: true });
+container.register('emailNotificationService', () => {
+    const host = process.env.SMTP_HOST;
+    const port = process.env.SMTP_PORT;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASSWORD;
+    const defaultFrom = process.env.EMAIL_FROM;
+    const nodeEnv = process.env.NODE_ENV;
+    return new EmailNotificationService(
+        host,
+        port,
+        user,
+        pass,
+        defaultFrom,
+        nodeEnv
+    );
+}, { singleton: true });
 
 // 5. Casos de Uso
 container.register('registerUserUseCase', (c) => {
     return new RegisterUserUseCase(
       c.resolve('userRepository'),
       c.resolve('hashingService'),
-    //   c.resolve('emailNotificationService')
+      c.resolve('userEntityFactory'),
+      c.resolve('roleEntityFactory'),
+      c.resolve('emailNotificationService')
     );
 });
 
@@ -185,7 +203,7 @@ container.register('verifyTokenUseCase', (c) => {
 });
 
 // 6. Controladores
-container.register('userController', (c) => {
+container.register('userController', (c) => { // por que esto es singleton?
   return new UserController(
     c.resolve('registerUserUseCase'),
     c.resolve('loginUserUseCase')

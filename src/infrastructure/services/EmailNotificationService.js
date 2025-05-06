@@ -1,18 +1,52 @@
-import nodemailer from 'nodemailer';  // npm install nodemailer
+import nodemailer from 'nodemailer';
 import INotificationService from '../../application/ports/INotificationService.js';
-// import path from 'path'; // Necesario si usas plantillas de archivo
-// import fs from 'fs/promises'; // Necesario si usas plantillas de archivo
-// import Handlebars from 'handlebars'; // Ejemplo si usas Handlebars
+import path from 'path'; 
+import fs from 'fs/promises';
+import Handlebars from 'handlebars';
+import { fileURLToPath } from 'url';
+
+// Obtener directorio actual para resolver las rutas de plantillas
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 class EmailNotificationService extends INotificationService {
-    constructor(host, port, user, pass, defaultFrom, nodeEnv) { // añadir en un futuro , frontendUrl
+    constructor(host, port, user, pass, defaultFrom, nodeEnv, frontendUrl) {
         super();
-        this.defaultFrom = defaultFrom || '"Classroom App" <no-reply@example.com>';
-        // this.frontendUrl = frontendUrl; // Guardar la URL del frontend
+        this.defaultFrom = defaultFrom || '"Sistema de Reserva de Aulas IUE" <no-reply@example.com>';
+        this.frontendUrl = frontendUrl || 'http://localhost:3000'; // URL por defecto para desarrollo
         this.nodeEnv = nodeEnv;
+        this.isTestAccount = false;
+        this.templates = {};
+        this.images = {}; // Para almacenar imágenes codificadas en base64
+        
+        this.setupTransporter(host, port, user, pass);
+        this.loadResources(); // Cargamos plantillas e imágenes al inicializar
+    }
+    
+    async setupTransporter(host, port, user, pass) {
+        // Para desarrollo, crear una cuenta de prueba de Ethereal si no hay credenciales válidas
+        if (this.nodeEnv === 'development' && (!user || user === 'ethereal.user@ethereal.email')) {
+            try {
+                console.log('Creating Ethereal test account for email testing...');
+                const testAccount = await nodemailer.createTestAccount();
+                this.isTestAccount = true;
+                
+                // Usar las credenciales de prueba generadas
+                host = 'smtp.ethereal.email';
+                port = 587;
+                user = testAccount.user;
+                pass = testAccount.pass;
+                
+                console.log('Ethereal test account created:');
+                console.log(`- Username: ${testAccount.user}`);
+                console.log(`- Password: ${testAccount.pass}`);
+                console.log('You can view sent emails at https://ethereal.email');
+            } catch (error) {
+                console.error('Failed to create Ethereal test account:', error);
+            }
+        }
 
         // Configura el transporter de nodemailer
-        // Puedes necesitar ajustar la configuración según tu proveedor SMTP (secure, requireTLS, etc.)
         const transporterOptions = {
             host: host,
             port: parseInt(port || "587", 10), // Puerto común para TLS
@@ -21,7 +55,6 @@ class EmailNotificationService extends INotificationService {
                 user: user, // Usuario SMTP
                 pass: pass, // Contraseña SMTP
             },
-            // Opciones adicionales si usas Gmail, etc. (less secure apps o App Passwords)
 
             ...(this.nodeEnv === 'development' && {
                 tls: {
@@ -32,43 +65,66 @@ class EmailNotificationService extends INotificationService {
 
         this.transporter = nodemailer.createTransport(transporterOptions);
 
-        this.transporter.verify()
-            .then(() => console.log('Email transporter is ready'))
-            .catch(error => console.error('Error configuring email transporter:', error));
+        try {
+            await this.transporter.verify();
+            console.log('Email transporter is ready');
+        } catch (error) {
+            console.error('Error configuring email transporter:', error);
+        }
     }
 
-    // // Método genérico (si lo necesitas)
-    // async sendNotification(notification) {
-    //     // Asume que 'notification' tiene propiedades como to, subject, body
-    //     const mailOptions = {
-    //         from: this.defaultFrom,
-    //         to: notification.to,
-    //         subject: notification.subject,
-    //         html: notification.body, // O text: notification.body
-    //     };
+    // Método para cargar recursos (plantillas e imágenes)
+    async loadResources() {
+        try {
+            // Cargar imágenes
+            await this.loadImages();
+            
+            // Registrar helpers de Handlebars para imágenes
+            Handlebars.registerHelper('getImage', (imageName) => {
+                return this.images[imageName] || '';
+            });
+            
+            // Cargar plantillas
+            await this.loadTemplates();
+            
+            console.log('Email resources loaded successfully');
+        } catch (error) {
+            console.error('Failed to load email resources:', error);
+        }
+    }
 
-    //     try {
-    //         const info = await this.transporter.sendMail(mailOptions);
-    //         console.log('Email sent: %s', info.messageId);
-    //         return info;
-    //     } catch (error) {
-    //         console.error('Error sending email:', error);
-    //         throw new Error('Failed to send email notification.'); // Lanza error para que el caso de uso lo maneje
-    //     }
-    // }
+    // Método para cargar imágenes y convertirlas a base64
+    async loadImages() {
+        try {
+            const imageDir = path.join(__dirname, 'templates', 'images');
+            
+            // Cargar logo IUE
+            const logoPath = path.join(imageDir, 'logo-iue.png');
+            const logoBuffer = await fs.readFile(logoPath);
+            const logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
+            this.images.logoIUE = logoBase64;
+            
+            console.log('Email images loaded successfully');
+        } catch (error) {
+            console.error('Failed to load email images:', error);
+        }
+    }
 
-
-    // // Opcional: Método para cargar plantillas
-    // async loadTemplates() {
-    //     try {
-    //         const templateDir = path.join(__dirname, 'templates'); // Ajusta la ruta
-    //         const thankYouTemplateContent = await fs.readFile(path.join(templateDir, 'reservationThankYou.hbs'), 'utf8');
-    //         this.thankYouTemplate = Handlebars.compile(thankYouTemplateContent);
-    //         // Carga otras plantillas...
-    //     } catch (error) {
-    //         console.error("Failed to load email templates:", error);
-    //     }
-    // }  
+    // Método para cargar las plantillas de correo electrónico
+    async loadTemplates() {
+        try {
+            const templateDir = path.join(__dirname, 'templates', 'email');
+            // Cargamos la plantilla de bienvenida
+            const welcomeTemplateContent = await fs.readFile(path.join(templateDir, 'welcome.html'), 'utf8');
+            this.templates.welcome = Handlebars.compile(welcomeTemplateContent);
+            
+            console.log('Email templates loaded successfully');
+            // Podemos cargar más plantillas aquí a medida que se vayan creando
+        } catch (error) {
+            console.error('Failed to load email templates:', error);
+            // No lanzamos error para permitir la operación sin plantillas como fallback
+        }
+    }
 
     async _sendEmail(to, subject, htmlContent) {
         const mailOptions = {
@@ -80,10 +136,16 @@ class EmailNotificationService extends INotificationService {
         try {
             const info = await this.transporter.sendMail(mailOptions);
             console.log(`Email '${subject}' sent to ${to}: ${info.messageId}`);
+            
+            // Si estamos usando una cuenta de prueba de Ethereal, mostrar la URL para ver el email
+            if (this.isTestAccount) {
+                console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+            }
+            
             return info;
         } catch (error) {
             console.error(`Error sending email '${subject}' to ${to}:`, error);
-            // Considera si necesitas relanzar o manejar el error de forma diferente
+            throw error; // Relanzamos el error para manejarlo en el caso de uso
         }
     }
 
@@ -124,19 +186,33 @@ class EmailNotificationService extends INotificationService {
 
     async sendRegistrationThankYouEmail(email, userName) {
         const subject = '¡Bienvenido a Classroom App!';
-        // **Mejora:** Usar una plantilla
-        const body = `
-            <h1>¡Registro Exitoso!</h1>
-            <p>Hola ${userName || ''},</p>
-            <p>Gracias por registrarte en nuestra aplicación de gestión de aulas.</p>
-            <p>Ahora puedes iniciar sesión y empezar a reservar aulas.</p>
-        `;
-        await this._sendEmail(email, subject, body);
+
+        let htmlContent;
+        
+        // Usar la plantilla si está disponible, o caer de vuelta al contenido básico
+        if (this.templates.welcome) {
+            const currentYear = new Date().getFullYear();
+            htmlContent = this.templates.welcome({
+                name: userName || 'Usuario',
+                loginUrl: `${this.frontendUrl}`,
+                year: currentYear
+            });
+        } else {
+            // Contenido básico como fallback
+            htmlContent = `
+                <h1>¡Registro Exitoso!</h1>
+                <p>Hola ${userName || ''},</p>
+                <p>Gracias por registrarte en nuestra aplicación de gestión de aulas.</p>
+                <p>Ahora puedes iniciar sesión y empezar a reservar aulas.</p>
+            `;
+        }
+        
+        await this._sendEmail(email, subject, htmlContent);
     }
 
     async sendReservationReminderEmail(email, reservationDetails) {
         const subject = 'Recordatorio de Reserva de Aula';
-        // **Mejora:** Usar una plantilla
+        // En el futuro, implementar una plantilla específica para recordatorios
         const body = `
             <h1>Recordatorio</h1>
             <p>Hola,</p>

@@ -15,42 +15,42 @@ export class SequelizeUserRepository extends IUserRepository {
         ];
     }
 
-    async _createOrUpdate(user) {
-        const userData = UserMapper.toModel(user);
-        let userModelInstance;
+    // async _createOrUpdate(user) {
+    //     const userData = UserMapper.toModel(user);
+    //     let userModelInstance;
 
-        if (user.id) {
-            userModelInstance = await this.userModel.findByPk(user.id);
-            if (userModelInstance) {
-                delete userData.id; // No intentar actualizar el ID
-                // Considera no actualizar la contraseña si no se proporciona explícitamente
-                if (!userData.password) {
-                    delete userData.password;
-                }
-                await userModelInstance.update(userData);
-            } else {
-                // Opcional: lanzar error si se intenta actualizar un usuario inexistente
-                throw new Error(`User with ID ${user.id} not found for update.`);
-                // O crear uno nuevo si esa es la lógica deseada:
-                // userModelInstance = await this.userModel.create(userData);
-            }
-        } else {
-            // Crear nuevo usuario
-            // Asegúrate de que el rol por defecto se asigna si no viene
-            // if (!userData.role_id) {
-            //   userData.role_id = ID_ROL_POR_DEFECTO;
-            // }
-            userModelInstance = await this.userModel.create(userData);
-        }
+    //     if (user.id) {
+    //         userModelInstance = await this.userModel.findByPk(user.id);
+    //         if (userModelInstance) {
+    //             delete userData.id; // No intentar actualizar el ID
+    //             // Considera no actualizar la contraseña si no se proporciona explícitamente
+    //             if (!userData.password) {
+    //                 delete userData.password;
+    //             }
+    //             await userModelInstance.update(userData);
+    //         } else {
+    //             // Opcional: lanzar error si se intenta actualizar un usuario inexistente
+    //             throw new Error(`User with ID ${user.id} not found for update.`);
+    //             // O crear uno nuevo si esa es la lógica deseada:
+    //             // userModelInstance = await this.userModel.create(userData);
+    //         }
+    //     } else {
+    //         // Crear nuevo usuario
+    //         // Asegúrate de que el rol por defecto se asigna si no viene
+    //         // if (!userData.role_id) {
+    //         //   userData.role_id = ID_ROL_POR_DEFECTO;
+    //         // }
+    //         userModelInstance = await this.userModel.create(userData);
+    //     }
 
-        await userModelInstance.reload({ include: this._includeRelations() });
-        return UserMapper.toDomain(userModelInstance);
-    }
+    //     await userModelInstance.reload({ include: this._includeRelations() });
+    //     return UserMapper.toDomain(userModelInstance);
+    // }
 
-    async save(user) {
-        // save puede ser ambiguo, a menudo significa create or update
-        return this._createOrUpdate(user);
-    }
+    // async save(user) {
+    //     // save puede ser ambiguo, a menudo significa create or update
+    //     return this._createOrUpdate(user);
+    // }
 
     async create(user) {
         // Podrías llamar a save o implementar la lógica de creación aquí directamente
