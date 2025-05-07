@@ -8,10 +8,6 @@ class RegisterUserUseCase {
   }
 
   async execute({ name, lastName, email, password, role }) {
-    // Step 1: Validate input
-    if (!email || !password || !name) {
-      throw new Error('Email, password and name are required');
-    }
 
     // Step 2: Check if user already exists
     const existingUser = await this.userRepository.findByEmail(email);

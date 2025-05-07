@@ -39,6 +39,26 @@ export class SequelizeScheduleRepository extends IScheduleRepository {
         return scheduleModels.map(ScheduleMapper.toDomain(scheduleModels)); // TENGO QUE CORREGIR ESTO
     }
 
+    async findAll({ classroomId, dayOfWeek }) {
+        const whereClause = {};
+
+        if (classroomId) {
+            whereClause.classroomId = classroomId;
+        }
+
+        if (dayOfWeek) {
+            whereClause.dayOfWeek = dayOfWeek;
+        }
+
+        const scheduleModels = await this.scheduleModel.findAll({
+            where: whereClause,
+            include: this._includeRelations(),
+            order: [['day_of_week', 'ASC'], ['start_time', 'ASC']] // Ejemplo de orden
+        });
+
+        return scheduleModels.map(ScheduleMapper.toDomain);
+    }
+
     async update(schedule) {
         const scheduleModel = await this.scheduleModel.findByPk(schedule.id);
         if (!scheduleModel) return null;

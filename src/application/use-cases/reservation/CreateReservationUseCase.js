@@ -1,73 +1,73 @@
-import Reservation from '../../../domain/entities/Reservation.js';
 import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
 
+/** 
+    * CreateReservationUseCase.js
+    * Use case for creating a reservation.
+    * This use case handles the logic for creating a reservation, including validation and checking availability.
+*/
+
 class CreateReservationUseCase {
-    // Inyecta las INTERFACES de repositorio necesarias
-    constructor(reservationRepository, classroomRepository, userRepository, scheduleRepository) {
+    constructor(reservationRepository, classroomRepository, userRepository) {
         this.reservationRepository = reservationRepository;
         this.classroomRepository = classroomRepository;
         this.userRepository = userRepository;
-        this.scheduleRepository = scheduleRepository; // Para verificar horarios fijos
     }
 
-    async execute({ userId, classroomId, date, startTime, endTime }) {
-        // 1. Validación de Entrada (básica)
-        if (!userId || !classroomId || !date || !startTime || !endTime) {
-            throw new ApplicationError('Faltan datos requeridos para la reserva.', 400);
-        }
-        const reservationStartTime = new Date(`${date}T${startTime}`);
-        const reservationEndTime = new Date(`${date}T${endTime}`);
-        if (reservationStartTime >= reservationEndTime) {
-             throw new ApplicationError('La hora de inicio debe ser anterior a la hora de fin.', 400);
-        }
-        // Podrías añadir validación de formato de hora/fecha
-
-        // 2. Validaciones de Negocio (usando repositorios)
-        const classroom = await this.classroomRepository.findById(classroomId);
-        if (!classroom) {
-            throw new ApplicationError(`Aula con ID ${classroomId} no encontrada.`, 404);
+    async execute({ userId, classroomId, date, startHour, finishHour }) {
+        // Step 1: Basic validation
+        if (!userId || !classroomId || !date || !startHour || !finishHour) {
+            throw new ApplicationError('User ID, classroom ID, date, start hour and finish hour are required', 400);
         }
 
+        // Step 2: Validate the time range
+        if (startHour >= finishHour) {
+            throw new ApplicationError('Start hour must be before finish hour', 400);
+        }
+
+        // Step 3: Check if the user exists
         const user = await this.userRepository.findById(userId);
         if (!user) {
-            throw new ApplicationError(`Usuario con ID ${userId} no encontrado.`, 404);
-        }
-        // Aquí podrías verificar el rol del usuario si hay restricciones
-
-        // Verificar conflictos con otras reservas
-        const conflictingReservations = await this.reservationRepository.findConflicts(classroomId, reservationStartTime, reservationEndTime);
-        if (conflictingReservations.length > 0) {
-            throw new ApplicationError('El aula ya está reservada en ese horario.', 409); // 409 Conflict
+            throw new ApplicationError(`User with ID ${userId} not found`, 404);
         }
 
-        // Verificar conflictos con horarios fijos (si aplica)
-        const dayOfWeek = reservationStartTime.toLocaleString('es-ES', { weekday: 'long' }); // Ajustar locale si es necesario
-        const conflictingSchedules = await this.scheduleRepository.findConflicts(classroomId, dayOfWeek, startTime, endTime);
-         if (conflictingSchedules.length > 0) {
-            throw new ApplicationError('El aula tiene una clase programada en ese horario.', 409);
+        // Step 4: Check if the classroom exists
+        const classroom = await this.classroomRepository.findById(classroomId);
+        if (!classroom) {
+            throw new ApplicationError(`Classroom with ID ${classroomId} not found`, 404);
         }
 
-        // 3. Crear la Entidad de Dominio
-        // Asume un estado inicial (ej. 'pendiente' o 'confirmada' dependiendo de tus reglas)
-        const statusId = 1; // ID del estado 'pendiente' o 'confirmada'
-        const newReservation = new Reservation({
-            id: null, // ID será asignado por la BD
-            userId: userId,
-            classroomId: classroomId,
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            statusId: statusId, // Estado inicial
-            // Podrías generar un token QR aquí si es necesario
-            qrToken: null, // O generar token
-            expirationDate: null // O calcular expiración si es 'pendiente'
-        });
+        // Step 5: Check if the classroom is available at the specified time
+        const reservationDate = new Date(date);
+        const isAvailable = await this.reservationRepository.isClassroomAvailable(
+            classroomId,
+            reservationDate,
+            startHour,
+            finishHour
+        );
 
-        // 4. Persistir usando el Repositorio
-        const createdReservation = await this.reservationRepository.save(newReservation);
+        if (!isAvailable) {
+            throw new ApplicationError(`Classroom ${classroom.fullName} is not available at the specified time`, 409);
+        }
 
-        // 5. Retornar el resultado
-        return createdReservation; // Devuelve la entidad de dominio creada
+        // Step 6: Create the reservation
+        const reservation = {
+            user,
+            classroom,
+            date: reservationDate,
+            startHour,
+            finishHour,
+            status: 1, // Assuming 1 is "Pending" status
+        };
+
+        // Step 7: Save the reservation
+        const createdReservation = await this.reservationRepository.create(reservation);
+
+        // Step 8: Return the reservation with user and classroom details
+        return {
+            ...createdReservation,
+            user,
+            classroom
+        };
     }
 }
 

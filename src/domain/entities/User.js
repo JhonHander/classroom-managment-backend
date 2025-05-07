@@ -17,8 +17,12 @@ class User {
     return this.role === 1 || this.role === 2;
   }
 
+  isAdmin() {
+    return this.role.id === 1;
+  }
+
   whatsTheRole() {
-    switch (this.rol_id) {
+    switch (this.role_id) {
       case 1:
         return 'admin';
       case 2:

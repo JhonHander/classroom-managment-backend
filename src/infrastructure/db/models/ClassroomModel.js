@@ -27,8 +27,11 @@ const defineClassroomModel = (sequelize) => {
     },
     classroomFullName: {
       type: DataTypes.STRING(50),
-      allowNull: false,
       field: 'classroom_full_name',
+      // No permitimos actualizaciones ya que es una columna generada
+      set() {
+        throw new Error('The field classroom_full_name is auto-generated and cannot be set directly');
+      }
     },
     classroomTypeId: {
       type: DataTypes.INTEGER,

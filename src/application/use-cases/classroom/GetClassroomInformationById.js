@@ -1,4 +1,4 @@
-class GetClassroomFeaturesUseCase {
+class GetClassroomInformationById {
   constructor(classroomRepository, scheduleRepository, sensorRepository) {
     this.classroomRepository = classroomRepository;
     this.scheduleRepository = scheduleRepository;
@@ -34,4 +34,4 @@ class GetClassroomFeaturesUseCase {
   }
 }
 
-export default GetClassroomFeaturesUseCase;
+export default GetClassroomInformationById;

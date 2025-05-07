@@ -8,10 +8,6 @@ class LoginUserUseCase {
   }
 
   async execute({ email, password }) {
-    // Step 1: Basic validation
-    if (!email || !password) {
-      throw new Error('Email and password are required');
-    }
 
     // Step 2: Find user by email
     const user = await this.userRepository.findByEmail(email);

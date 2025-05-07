@@ -1,4 +1,5 @@
 import { RegisterUserDTO } from '../dtos/RegisterUserDTO.js';
+import { LoginUserDTO } from '../dtos/LoginUserDTO.js';
 
 class UserController {
   constructor(registerUserUseCase, loginUserUseCase) {
@@ -62,16 +63,19 @@ class UserController {
    */
   async login(req, res) {
     try {
-      const { email, password } = req.body;
+      const loginUserDTO = new LoginUserDTO(req.body);
+      const { isValid, errors } = loginUserDTO.validate();
 
-      if (!email || !password) {
+      if(!isValid) {
         return res.status(400).json({
           success: false,
-          message: 'Email and password are required'
+          message: 'Validation failed',
+          errors
         });
       }
 
-      const result = await this.loginUserUseCase.execute({ email, password });
+      const loginUserData = loginUserDTO.toData();
+      const result = await this.loginUserUseCase.execute(loginUserData);
 
       return res.status(200).json({
         success: true,
