@@ -1,5 +1,3 @@
-import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
-
 /** 
     * CreateReservationUseCase.js
     * Use case for creating a reservation.
@@ -7,56 +5,58 @@ import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; /
 */
 
 class CreateReservationUseCase {
-    constructor(reservationRepository, classroomRepository, userRepository) {
+    constructor(reservationRepository, classroomRepository, userRepository, findAvailableClassroomsUseCase) {
         this.reservationRepository = reservationRepository;
         this.classroomRepository = classroomRepository;
         this.userRepository = userRepository;
+        this.findAvailableClassroomsUseCase = findAvailableClassroomsUseCase;
     }
 
-    async execute({ userId, classroomId, date, startHour, finishHour }) {
+    async execute({ userId, classroomId, date, startHour, finishHour, purpose = null }) {
         // Step 1: Basic validation
         if (!userId || !classroomId || !date || !startHour || !finishHour) {
-            throw new ApplicationError('User ID, classroom ID, date, start hour and finish hour are required', 400);
+            throw new Error('User ID, classroom ID, date, start hour and finish hour are required');
         }
 
         // Step 2: Validate the time range
         if (startHour >= finishHour) {
-            throw new ApplicationError('Start hour must be before finish hour', 400);
+            throw new Error('Start hour must be before finish hour');
         }
 
         // Step 3: Check if the user exists
         const user = await this.userRepository.findById(userId);
         if (!user) {
-            throw new ApplicationError(`User with ID ${userId} not found`, 404);
+            throw new Error(`User with ID ${userId} not found`);
         }
 
         // Step 4: Check if the classroom exists
         const classroom = await this.classroomRepository.findById(classroomId);
         if (!classroom) {
-            throw new ApplicationError(`Classroom with ID ${classroomId} not found`, 404);
+            throw new Error(`Classroom with ID ${classroomId} not found`);
         }
 
-        // Step 5: Check if the classroom is available at the specified time
-        const reservationDate = new Date(date);
-        const isAvailable = await this.reservationRepository.isClassroomAvailable(
-            classroomId,
-            reservationDate,
-            startHour,
-            finishHour
-        );
+        // Step 5: Check if the classroom is available using FindAvailableClassroomsUseCase
+        const availableClassrooms = await this.findAvailableClassroomsUseCase.execute({
+            date: date,
+            startTime: startHour,
+            endTime: finishHour,
+        });
 
+        // Check if the requested classroom is in the list of available classrooms
+        const isAvailable = availableClassrooms.some(c => c.id === classroomId);
         if (!isAvailable) {
-            throw new ApplicationError(`Classroom ${classroom.fullName} is not available at the specified time`, 409);
+            throw new Error(`Classroom ${classroom.fullName} is not available at the specified time`);
         }
 
         // Step 6: Create the reservation
         const reservation = {
-            user,
-            classroom,
-            date: reservationDate,
+            userId,
+            classroomId,
+            date: new Date(date),
             startHour,
             finishHour,
             status: 1, // Assuming 1 is "Pending" status
+            purpose
         };
 
         // Step 7: Save the reservation

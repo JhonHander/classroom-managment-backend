@@ -1,8 +1,11 @@
+/**
+ * Finds available classrooms for a specific time slot, date, capacity, and features.
+ * It checks for conflicts with existing reservations and scheduled classes.
+ */
 class FindAvailableClassroomsUseCase {
   constructor(classroomRepository, scheduleRepository, reservationRepository) {
     this.classroomRepository = classroomRepository;
     this.scheduleRepository = scheduleRepository;
-    this.reservationRepository = reservationRepository;
   }
 
   async execute({ date, startTime, endTime, capacity, features }) {

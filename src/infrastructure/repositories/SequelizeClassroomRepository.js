@@ -224,6 +224,6 @@ export class SequelizeClassroomRepository extends IClassroomRepository {
       order: [['classroomFullName', 'ASC']] // Opcional: ordenar resultados
     });
 
-    return availableClassrooms.map(ClassroomMapper.toDomain);
+    return availableClassrooms.map(ClassroomMapper.toDomain(availableClassrooms));
   }
 }
