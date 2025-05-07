@@ -206,8 +206,8 @@ export class SequelizeClassroomRepository extends IClassroomRepository {
       where: {
         // La reserva termina después de que inicia el rango Y
         // La reserva inicia antes de que termine el rango
-        end_time: { [Op.gt]: startTime },
-        start_time: { [Op.lt]: endTime },
+        finish_hour: { [Op.gt]: startTime },
+        start_hour: { [Op.lt]: endTime },
         // Podrías añadir filtro por estado de reserva si es necesario (ej: solo confirmadas)
         // reservation_status_id: ID_DEL_ESTADO_CONFIRMADO
       },

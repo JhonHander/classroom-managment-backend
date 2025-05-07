@@ -20,9 +20,11 @@ import EmailNotificationService from '../infrastructure/services/EmailNotificati
 import RegisterUserUseCase from '../application/use-cases/auth/RegisterUserUseCase.js';
 import LoginUserUseCase from '../application/use-cases/auth/LoginUserUseCase.js';
 import VerifyTokenUseCase from '../application/use-cases/auth/VerifyTokenUseCase.js';
+import FindAvailableClassroomsUseCase from '../application/use-cases/classroom/FindAvailableClassroomsUseCase.js';
 
 // --- Importación de controladores ---
 import UserController from '../interfaces/controllers/UserController.js';
+import ClassroomController from '../interfaces/controllers/ClassroomController.js';
 
 import dotenv from 'dotenv';
 
@@ -108,7 +110,8 @@ container.register('classroomRepository', (c) => {
     return new SequelizeClassroomRepository(
         models.ClassroomModel,
         models.ClassroomTypeModel,
-        models.ClassroomFeatureModel
+        models.ClassroomFeatureModel,
+        models.ReservationModel
     );
 }, { singleton: true });
 
@@ -202,11 +205,26 @@ container.register('verifyTokenUseCase', (c) => {
   );
 });
 
+container.register('FindAvailableClassroomsUseCase', (c) => {
+  return new FindAvailableClassroomsUseCase(
+    c.resolve('classroomRepository'),
+    c.resolve('scheduleRepository'),
+    c.resolve('reservationRepository')
+  );
+});
+
 // 6. Controladores
 container.register('userController', (c) => { // por que esto es singleton?
   return new UserController(
     c.resolve('registerUserUseCase'),
     c.resolve('loginUserUseCase')
+  );
+}, { singleton: true });
+
+container.register('classroomController', (c) => {
+  return new ClassroomController(
+    c.resolve('FindAvailableClassroomsUseCase'),
+    
   );
 }, { singleton: true });
 

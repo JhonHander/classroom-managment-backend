@@ -59,4 +59,16 @@ export class SequelizeScheduleRepository extends IScheduleRepository {
     }
 
     // Implementa otros métodos definidos en IScheduleRepository...
+
+    async getSchedulesByClassroomIdAndDateAndTime(classroomIds, day, startTime, endTime) {
+        return await this.scheduleModel.findAll({
+          where: {
+            classroom_id: { [Op.in]: classroomIds },
+            day: day,
+            start_hour: { [Op.lt]: endTime },
+            finish_hour: { [Op.gt]: startTime }
+          },
+          raw: true
+        });
+      }
 }

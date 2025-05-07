@@ -28,7 +28,7 @@ export class ClassroomMapper {
       classroomType: classroomType, // Pasa el objeto ClassroomType mapeado
       block: classroomModel.block,
       classroomNumber: classroomModel.classroomNumber,
-      classroomFullName: classroomModel.classroomFullName,
+      classroomFullName: classroomModel.classroomFullName ?? `${classroomModel.block}-${classroomModel.classroomNumber}`,
       // qrCode: classroomModel.qrCode,
       capacity: classroomModel.capacity
     });

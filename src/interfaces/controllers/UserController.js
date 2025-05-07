@@ -11,12 +11,16 @@ class UserController {
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
+  
   async register(req, res) {
+ 
+
     try {
       // Create and validate DTO from request body
       const registerUserDTO = new RegisterUserDTO(req.body);
       const { isValid, errors } = registerUserDTO.validate();
-
+      console.log('Body recibido:', req.body);
+      console.log('DTO transformado:', registerUserDTO.toData());
       if (!isValid) {
         return res.status(400).json({ 
           success: false, 

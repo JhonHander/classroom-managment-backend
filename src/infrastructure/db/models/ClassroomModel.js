@@ -16,11 +16,11 @@ const defineClassroomModel = (sequelize) => {
       allowNull: false,
       field: 'classroom_number',
     },
-    qrCode: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      field: 'qr_code',
-    },
+    // qrCode: {
+    //   type: DataTypes.STRING(255),
+    //   allowNull: true,
+    //   field: 'qr_code',
+    // },
     capacity: {
       type: DataTypes.INTEGER,
       allowNull: false,
