@@ -25,7 +25,7 @@ import CreateReservationUseCase from '../application/use-cases/reservation/Creat
 // --- Importación de controladores ---
 import UserController from '../interfaces/controllers/UserController.js';
 import ClassroomController from '../interfaces/controllers/ClassroomController.js';
-// import ReservationController from '../interfaces/controllers/ReservationController.js';
+import ReservationController from '../interfaces/controllers/ReservationController.js';
 
 import dotenv from 'dotenv';
 
@@ -213,15 +213,14 @@ container.register('FindAvailableClassroomsUseCase', (c) => {
     c.resolve('reservationRepository')
   );
 });
-//aca no se si algunos van por el tema de verificaciones que a lo mejor no se necesitan
-// container.register('CreateReservationUseCase', (c) => {
-//   return new CreateReservationUseCase(
-//     c.resolve('reservationRepository'),
-//     c.resolve('userRepository'),
-//     c.resolve('classroomRepository'),
-//     c.resolve('scheduleRepository')
-//   );
-// });
+
+container.register('createReservationUseCase', (c) => {
+  return new CreateReservationUseCase(
+    c.resolve('reservationRepository'),
+    c.resolve('classroomRepository'),
+    c.resolve('userRepository')
+  );
+});
 
 // 6. Controladores
 container.register('userController', (c) => { // por que esto es singleton?
@@ -238,11 +237,11 @@ container.register('classroomController', (c) => {
   );
 }, { singleton: true });
 
-// container.register('reservationController', (c) => {
-//   return new ReservationController(
-//     c.resolve('CreateReservationUseCase')
-//   );
-// }, { singleton: true });
+container.register('reservationController', (c) => {
+  return new ReservationController(
+    c.resolve('createReservationUseCase')
+  );
+}, { singleton: true });
 
 console.log('Container configured with dependencies.');
 export default container;

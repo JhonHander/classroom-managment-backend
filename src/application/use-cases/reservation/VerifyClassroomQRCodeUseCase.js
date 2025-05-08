@@ -67,10 +67,10 @@ class VerifyClassroomQRCodeUseCase {
       throw new Error('No valid pending reservations found for the current time');
     }
 
-    // Step 6: Update the reservation status to confirmed (assuming 3 is confirmed status)
+    // Step 6: Update the reservation status to confirmed (assuming 2 is confirmed status)
     const updatedReservation = await this.reservationRepository.updateStatus(
       validReservation.id,
-      3, // Confirmed status
+      2, // Confirmed status
       'Confirmed by QR code scan'
     );
 

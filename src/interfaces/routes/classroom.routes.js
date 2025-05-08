@@ -11,5 +11,5 @@ const classroomController = container.resolve('classroomController');
  * @access Public
  */
 
-router.get('/findClassrooms', (req, res) => classroomController.getAvailableClassrooms(req, res));
+router.get('/findAvailability', (req, res) => classroomController.getAvailableClassrooms(req, res));
 export default router;

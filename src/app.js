@@ -4,7 +4,8 @@ import morgan from 'morgan'; // Para logging de solicitudes HTTP
 import { connect, sync } from './config/database.js'; // Importar la función de conexión a la BD
 import userRoutes from './interfaces/routes/user.routes.js';
 import classroomRoutes from './interfaces/routes/classroom.routes.js'; // Importar las rutas de classroom
-// import classroomRoutes from './interfaces/routes/classroom.routes.js';
+import reservationRoutes from './interfaces/routes/reservation.routes.js'; // Importar las rutas de reserva
+// import availabilityRoutes from './interfaces/routes/availability.routes.js'; // Importar las rutas de disponibilidad
 
 const app = express();
 
@@ -36,9 +37,10 @@ app.get('/', (req, res) => {
 
 // Rutas de la API
 app.use('/api/users', userRoutes);
-   
-// app.use('/api/classrooms', classroomRoutes);
-app.use('/api/classroom', classroomRoutes); 
+app.use('/api/classrooms', classroomRoutes); 
+// app.use('/api/availability', availabilityRoutes); // Rutas de disponibilidad
+app.use('/api/reservations', reservationRoutes); // Rutas de reservas
+
 // Middleware para manejar rutas no encontradas
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

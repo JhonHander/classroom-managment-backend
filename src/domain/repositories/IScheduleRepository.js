@@ -11,8 +11,7 @@ class IScheduleRepository {
     async findByClassroomId(classroomId) { throw new Error("Method not implemented"); }
     async getAvailableSchedules(classroomId, date) { throw new Error("Method not implemented"); }
     async getSchedulesByDay(date) { throw new Error("Method not implemented"); }
-    async getSchedulesByClassroomIdAndDate(classroomId, date) { throw new Error("Method not implemented"); }
-    async getSchedulesByClassroomIdAndDateAndTime(classroomId, date, startTime, endTime) { throw new Error("Method not implemented"); }
+    async getSchedulesForClassroom(classroomName, day, startTime, endTime) { throw new Error("Method not implemented"); }
 }
 
 export default IScheduleRepository;

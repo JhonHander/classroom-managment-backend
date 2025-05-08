@@ -167,4 +167,37 @@ export class SequelizeReservationRepository extends IReservationRepository {
         });
         return reservationModels.map(ReservationMapper.toDomain);
     }
+
+    /**
+     * Finds active reservations for a specific user
+     * @param {number} userId - The ID of the user
+     * @returns {Promise<Object|null>} - The active reservation for the user or null
+     */
+    async findActiveByUserId(userId) {
+        try {
+            // Status IDs: 1 = Pending, 2 = Confirmed, 
+            // We consider any reservation with status 1, 2 as "active"
+            const activeStatusIds = [1, 2]; 
+            
+            const reservation = await this.reservationModel.findOne({
+                where: {
+                    user_id: userId,
+                    reservation_status_id: {
+                        [Op.in]: activeStatusIds
+                    },
+                    // Only include future reservations or those happening today
+                    date: {
+                        [Op.gte]: new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD
+                    }
+                },
+                include: this._includeRelations(),
+                order: [['date', 'ASC'], ['start_hour', 'ASC']]
+            });
+
+            return reservation ? ReservationMapper.toDomain(reservation) : null;
+        } catch (error) {
+            console.error('Error finding active reservations by user ID:', error);
+            throw error;
+        }
+    }
 }

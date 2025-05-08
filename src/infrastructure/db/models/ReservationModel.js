@@ -21,35 +21,21 @@ const defineReservationModel = (sequelize) => {
       type: DataTypes.DATEONLY,
       allowNull: false,
     },
-    startTime: {
+    startHour: {
       type: DataTypes.TIME,
       allowNull: false,
-      field: 'start_time',
+      field: 'start_hour',
     },
-    endTime: {
+    finishHour: {
       type: DataTypes.TIME,
       allowNull: false,
-      field: 'end_time',
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
+      field: 'finish_hour',
     },
     reservationStatusId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1, // Pendiente por defecto
       field: 'reservation_status_id',
-    },
-    qrToken: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'qr_token',
-    },
-    expirationDate: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      field: 'expiration_date',
     },
   }, {
     tableName: 'Reservation',
