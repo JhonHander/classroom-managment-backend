@@ -46,7 +46,7 @@ export class SequelizeClassroomRepository extends IClassroomRepository {
 
   async findOne(fullName) {
     const classroomModel = await this.classroomModel.findOne({
-      where: { full_name: fullName },
+      where: { classroom_full_name: fullName },
       include: this._includeRelations()
     });
   

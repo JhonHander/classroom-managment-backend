@@ -4,21 +4,21 @@
  */
 class CreateReservationDTO {
   /**
-   * Validates and transforms the input data
+   * Validates the input data
    * @param {Object} data - The data to validate
-   * @returns {Object} - The validated and transformed data
+   * @returns {Object} - The validated data
    * @throws {Error} - If validation fails
    */
   static validate(data) {
-    const { userId, classroomId, date, startHour, finishHour } = data;
+    const { userId, classroomFullName, date, startHour, finishHour } = data;
 
     // Required fields validation
     if (!userId) {
       throw new Error('User ID is required');
     }
 
-    if (!classroomId) {
-      throw new Error('Classroom ID is required');
+    if (!classroomFullName) {
+      throw new Error('Classroom full name is required');
     }
 
     if (!date) {
@@ -38,8 +38,10 @@ class CreateReservationDTO {
       throw new Error('User ID must be a number');
     }
 
-    if (isNaN(parseInt(classroomId))) {
-      throw new Error('Classroom ID must be a number');
+    // Classroom fullName validation - formato "10-101" o "8-102"
+    const classroomRegex = /^\d+-\d+$/;
+    if (!classroomRegex.test(classroomFullName)) {
+      throw new Error('Classroom full name must be in the format "Block-Number" (e.g., "10-101", "8-102")');
     }
 
     // Date format validation
@@ -72,13 +74,23 @@ class CreateReservationDTO {
       throw new Error('Reservation date cannot be in the past');
     }
 
-    // Return validated and transformed data
+    return data;
+  }
+
+  /**
+   * Transforms input data to domain model format
+   * @param {Object} data - The validated data
+   * @returns {Object} - The transformed data ready for use case
+   */
+  static toData(data) {
+    const validatedData = this.validate(data);
+
     return {
-      userId: parseInt(userId),
-      classroomId: parseInt(classroomId),
-      date,
-      startHour,
-      finishHour,
+      userId: parseInt(validatedData.userId),
+      classroomFullName: validatedData.classroomFullName,
+      date: validatedData.date,
+      startHour: validatedData.startHour,
+      finishHour: validatedData.finishHour,
     };
   }
 }

@@ -13,8 +13,17 @@ export class SequelizeReservationRepository extends IReservationRepository {
 
     _includeRelations() {
         return [
-            { model: this.userModel, as: 'user', attributes: { exclude: ['password'] } }, // Excluir password
-            { model: this.classroomModel, as: 'classroom' },
+            { 
+                model: this.userModel, 
+                as: 'user', 
+                attributes: { exclude: ['password'] },
+                include: [{ model: this.userModel.associations.role.target, as: 'role' }] // Incluir la relación role del usuario
+            },
+            { 
+                model: this.classroomModel, 
+                as: 'classroom',
+                include: [{ model: this.classroomModel.associations.classroomType.target, as: 'classroomType' }] // Incluir el tipo de aula
+            },
             { model: this.reservationStatusModel, as: 'reservationStatus' }
         ];
     }
@@ -36,7 +45,7 @@ export class SequelizeReservationRepository extends IReservationRepository {
             include: this._includeRelations(),
             order: [['start_time', 'DESC']] // Opcional: ordenar
         });
-        return reservationModels.map(ReservationMapper.toDomain);
+        return reservationModels.map(reservation => ReservationMapper.toDomain(reservation));
     }
 
     async update(reservation) {

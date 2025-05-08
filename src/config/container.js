@@ -22,6 +22,15 @@ import LoginUserUseCase from '../application/use-cases/auth/LoginUserUseCase.js'
 import VerifyTokenUseCase from '../application/use-cases/auth/VerifyTokenUseCase.js';
 import FindAvailableClassroomsUseCase from '../application/use-cases/classroom/FindAvailableClassroomsUseCase.js';
 import CreateReservationUseCase from '../application/use-cases/reservation/CreateReservationUseCase.js';
+import GetAllReservationsUseCase from '../application/use-cases/reservation/GetAllReservationsUseCase.js';
+import GetReservationByIdUseCase from '../application/use-cases/reservation/GetReservationByIdUseCase.js';
+import UpdateReservationUseCase from '../application/use-cases/reservation/UpdateReservationUseCase.js';
+import CancelReservationUseCase from '../application/use-cases/reservation/CancelReservationUseCase.js';
+import GetActiveReservationUserUseCase from '../application/use-cases/reservation/GetActiveReservationUserUseCase.js';
+import GetReservationsByUserUseCase from '../application/use-cases/reservation/GetReservationsByUserUseCase.js';
+import GetReservationsByClassroomUseCase from '../application/use-cases/reservation/GetReservationsByClassroomUseCase.js';
+import GetReservationsByDateUseCase from '../application/use-cases/reservation/GetReservationsByDateUseCase.js';
+
 // --- Importación de controladores ---
 import UserController from '../interfaces/controllers/UserController.js';
 import ClassroomController from '../interfaces/controllers/ClassroomController.js';
@@ -222,8 +231,56 @@ container.register('createReservationUseCase', (c) => {
   );
 });
 
+container.register('getAllReservationsUseCase', (c) => {
+  return new GetAllReservationsUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('getReservationByIdUseCase', (c) => {
+  return new GetReservationByIdUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('updateReservationUseCase', (c) => {
+  return new UpdateReservationUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('cancelReservationUseCase', (c) => {
+  return new CancelReservationUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('getActiveReservationUseCase', (c) => {
+  return new GetActiveReservationUserUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('getReservationsByUserUseCase', (c) => {
+  return new GetReservationsByUserUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('getReservationsByClassroomUseCase', (c) => {
+  return new GetReservationsByClassroomUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
+container.register('getReservationsByDateUseCase', (c) => {
+  return new GetReservationsByDateUseCase(
+    c.resolve('reservationRepository')
+  );
+});
+
 // 6. Controladores
-container.register('userController', (c) => { // por que esto es singleton?
+container.register('userController', (c) => {
   return new UserController(
     c.resolve('registerUserUseCase'),
     c.resolve('loginUserUseCase')
@@ -239,7 +296,14 @@ container.register('classroomController', (c) => {
 
 container.register('reservationController', (c) => {
   return new ReservationController(
-    c.resolve('createReservationUseCase')
+    c.resolve('createReservationUseCase'),
+    c.resolve('getAllReservationsUseCase'),
+    c.resolve('getReservationByIdUseCase'),
+    c.resolve('updateReservationUseCase'),
+    c.resolve('cancelReservationUseCase'),
+    c.resolve('getActiveReservationUseCase'),
+    c.resolve('getReservationsByUserUseCase'),
+    c.resolve('getReservationsByClassroomUseCase'),
   );
 }, { singleton: true });
 

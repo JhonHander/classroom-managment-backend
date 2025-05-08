@@ -1,7 +1,7 @@
 /** 
     * CreateReservationUseCase.js
     * Use case for creating a reservation.
-    * Simplified version with validations moved to DTO.
+    * Modified to use classroom fullName instead of ID.
 */
 
 class CreateReservationUseCase {
@@ -11,17 +11,17 @@ class CreateReservationUseCase {
         this.userRepository = userRepository;
     }
 
-    async execute({ userId, classroomId, date, startHour, finishHour }) {
+    async execute({ userId, classroomFullName, date, startHour, finishHour }) {
         // Step 1: Check if the user exists
         const user = await this.userRepository.findById(userId);
         if (!user) {
             throw new Error(`User with ID ${userId} not found`);
         }
 
-        // Step 2: Check if the classroom exists
-        const classroom = await this.classroomRepository.findById(classroomId);
+        // Step 2: Check if the classroom exists by fullName
+        const classroom = await this.classroomRepository.findOne(classroomFullName);
         if (!classroom) {
-            throw new Error(`Classroom with ID ${classroomId} not found`);
+            throw new Error(`Classroom with fullName "${classroomFullName}" not found`);
         }
 
         // Step 3: Check if the user already has an active reservation
@@ -33,7 +33,7 @@ class CreateReservationUseCase {
         // Step 4: Create a new reservation with 'pending' status (id: 1)
         const reservation = {
             userId,
-            classroomId,
+            classroomId: classroom.id, // Usamos el ID del aula que obtuvimos de la búsqueda por fullName
             date: new Date(date),
             startHour,
             finishHour,

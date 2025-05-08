@@ -49,16 +49,29 @@ export class ReservationMapper {
      * */
 
     static toModel(reservation) {
-        return {
-            id: reservation.id,
-            userId: reservation.user ? reservation.user.id : null, // ID del usuario
-            classroomId: reservation.classroom ? reservation.classroom.id : null, // ID del aula
-            reservationStatusId: reservation.reservationStatus ? reservation.reservationStatus.id : null, // ID del estado de la reserva
-            date: reservation.date,
-            startHour: reservation.startHour,
-            finishHour: reservation.finishHour,
-            // tokenQr: reservation.tokenQr,
-            // dateExpiration: reservation.dateExpiration,
-        };
+        // Manejo de objetos de dominio completos
+        if (reservation.user || reservation.classroom || reservation.reservationStatus) {
+            return {
+                id: reservation.id,
+                userId: reservation.user ? reservation.user.id : null,
+                classroomId: reservation.classroom ? reservation.classroom.id : null,
+                reservationStatusId: reservation.reservationStatus ? reservation.reservationStatus.id : null,
+                date: reservation.date,
+                startHour: reservation.startHour, 
+                finishHour: reservation.finishHour   
+            };
+        } 
+        // Manejo de objetos directos desde el caso de uso
+        else {
+            return {
+                id: reservation.id,
+                userId: reservation.userId,
+                classroomId: reservation.classroomId,
+                reservationStatusId: reservation.reservationStatusId,
+                date: reservation.date,
+                startHour: reservation.startHour, 
+                finishHour: reservation.finishHour   
+            };
+        }
     }
 }
