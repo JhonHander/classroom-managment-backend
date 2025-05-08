@@ -3,7 +3,7 @@
  * It checks for conflicts with existing reservations and scheduled classes.
  */
 class FindAvailableClassroomsUseCase {
-  constructor(classroomRepository, scheduleRepository, reservationRepository) {
+  constructor(classroomRepository, scheduleRepository) {
     this.classroomRepository = classroomRepository;
     this.scheduleRepository = scheduleRepository;
   }
@@ -31,7 +31,7 @@ class FindAvailableClassroomsUseCase {
 
     // Step 3: Filter out classrooms that have scheduled classes
     const available = availableClassrooms.map(classroom => classroom.classroomFullName);
-    const classroomsWithSchedules = await this.scheduleRepository.getSchedulesByClassroomIdAndDateAndTime(
+    const classroomsWithSchedules = await this.scheduleRepository.getSchedulesForClassroom(
       available,
       dayOfWeek,
       startHour,
@@ -70,6 +70,7 @@ class FindAvailableClassroomsUseCase {
     }
 
     // Step 5: Return available classrooms
+    console.log('[DEBUG] Available classrooms:', filteredClassrooms);
     return filteredClassrooms;
   }
 }

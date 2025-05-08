@@ -1,4 +1,4 @@
-import Classroom from '../../domain/entities/Classroom.js';
+import  Classroom  from '../../domain/entities/Classroom.js';
 // Importa los mappers específicos para las asociaciones
 import { ClassroomTypeMapper } from './ClassroomTypeMapper.js';
 // import { ClassroomFeatureMapper } from './ClassroomFeatureMapper.js';
@@ -28,7 +28,8 @@ export class ClassroomMapper {
       classroomType: classroomType, // Pasa el objeto ClassroomType mapeado
       block: classroomModel.block,
       classroomNumber: classroomModel.classroomNumber,
-      classroomFullName: classroomModel.classroomFullName, // Pasamos el valor generado por la BD
+      classroomFullName: classroomModel.classroomFullName,
+      // qrCode: classroomModel.qrCode,
       capacity: classroomModel.capacity
     });
   }
@@ -47,7 +48,8 @@ export class ClassroomMapper {
       classroomTypeId: classroom.type ? classroom.type.id : null, // Usa el ID del tipo para la FK
       block: classroom.block,
       classroomNumber: classroom.number,
-      // No incluimos classroomFullName porque es generado por la BD
+      // classroomFullName es generado por la BD
+      // qrCode: classroom.qrCode,
       capacity: classroom.capacity,
       // Las características (M-N) se manejan por separado (ej: setFeatures) en el repositorio
     };

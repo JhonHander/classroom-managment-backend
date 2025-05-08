@@ -34,7 +34,7 @@ class ClassroomController {
           fullName: c.fullName,
           capacity: c.capacity,
           block: c.block,
-          type: c.classroomType?.name || 'Desconocido'
+          type: c.type.name
         });
         return dto.toData();
       });

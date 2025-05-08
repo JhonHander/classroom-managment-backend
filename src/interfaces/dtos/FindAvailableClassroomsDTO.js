@@ -9,7 +9,7 @@ export class AvailableClassroomDTO {
     this.capacity = data.capacity;
     this.type = data.type;
     this.block = data.block;
-    this.sensorStatus = data.sensorStatus || 'activo'; // default if missing
+    // this.sensorStatus = data.sensorStatus || 'activo'; // default if missing
   }
 
   /**
@@ -58,7 +58,7 @@ export class AvailableClassroomDTO {
       capacity: this.capacity,
       type: this.type.trim(),
       block: this.block.trim(),
-      sensorStatus: this.sensorStatus
+      // sensorStatus: this.sensorStatus
     };
   }
 }
