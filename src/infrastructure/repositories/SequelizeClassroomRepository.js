@@ -140,6 +140,15 @@ export class SequelizeClassroomRepository extends IClassroomRepository {
     return ClassroomMapper.toDomain(classroomModel);
   }
 
+  async findOne(full_name) {
+    const classroomModel = await this.classroomModel.findOne({
+      where: { full_name: full_name },
+      include: this._includeRelations()
+    });
+  
+    return ClassroomMapper.toDomain(classroomModel);
+  }
+
   async update(id, classroomChanges) {
     const classroomModel = await this.classroomModel.findByPk(id);
     if (!classroomModel) {

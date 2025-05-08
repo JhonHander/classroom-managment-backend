@@ -1,5 +1,5 @@
 import Reservation from '../../../domain/entities/Reservation.js';
-import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
+// import { ApplicationError } from '../../../shared/errors/ApplicationError.js'; // Podrías tener errores custom
 
 class CreateReservationUseCase {
     // Inyecta las INTERFACES de repositorio necesarias
@@ -35,17 +35,17 @@ class CreateReservationUseCase {
         // Aquí podrías verificar el rol del usuario si hay restricciones
 
         // Verificar conflictos con otras reservas
-        const conflictingReservations = await this.reservationRepository.findConflicts(classroomId, reservationStartTime, reservationEndTime);
-        if (conflictingReservations.length > 0) {
-            throw new ApplicationError('El aula ya está reservada en ese horario.', 409); // 409 Conflict
-        }
+        // const conflictingReservations = await this.reservationRepository.findConflicts(classroomId, reservationStartTime, reservationEndTime);
+        // if (conflictingReservations.length > 0) {
+        //     throw new ApplicationError('El aula ya está reservada en ese horario.', 409); // 409 Conflict
+        // }
 
         // Verificar conflictos con horarios fijos (si aplica)
-        const dayOfWeek = reservationStartTime.toLocaleString('es-ES', { weekday: 'long' }); // Ajustar locale si es necesario
-        const conflictingSchedules = await this.scheduleRepository.findConflicts(classroomId, dayOfWeek, startTime, endTime);
-         if (conflictingSchedules.length > 0) {
-            throw new ApplicationError('El aula tiene una clase programada en ese horario.', 409);
-        }
+        // const dayOfWeek = reservationStartTime.toLocaleString('es-ES', { weekday: 'long' }); // Ajustar locale si es necesario
+        // const conflictingSchedules = await this.scheduleRepository.findConflicts(classroomId, dayOfWeek, startTime, endTime);
+        //  if (conflictingSchedules.length > 0) {
+        //     throw new ApplicationError('El aula tiene una clase programada en ese horario.', 409);
+        // }
 
         // 3. Crear la Entidad de Dominio
         // Asume un estado inicial (ej. 'pendiente' o 'confirmada' dependiendo de tus reglas)
@@ -59,8 +59,8 @@ class CreateReservationUseCase {
             endTime: endTime,
             statusId: statusId, // Estado inicial
             // Podrías generar un token QR aquí si es necesario
-            qrToken: null, // O generar token
-            expirationDate: null // O calcular expiración si es 'pendiente'
+            // qrToken: null, // O generar token
+            // expirationDate: null // O calcular expiración si es 'pendiente'
         });
 
         // 4. Persistir usando el Repositorio

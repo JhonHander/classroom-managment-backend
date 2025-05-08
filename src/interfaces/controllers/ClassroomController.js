@@ -31,7 +31,7 @@ class ClassroomController {
       const response = classrooms.map(c => {
         const dto = new AvailableClassroomDTO({
           id: c.id,
-          fullName: c.classroom_full_name,
+          fullName: c.fullName,
           capacity: c.capacity,
           block: c.block,
           type: c.classroomType?.name || 'Desconocido'

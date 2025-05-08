@@ -8,6 +8,7 @@ class IClassroomRepository {
 
     // Specific searches
     
+    async findOne(full_name) { throw new Error("Method not implemented"); }
     async getByBlock(block) { throw new Error("Method not implemented"); }
     async getWithFeatures(features) { throw new Error("Method not implemented"); }
     async getAvailable(date, time) { throw new Error("Method not implemented"); }

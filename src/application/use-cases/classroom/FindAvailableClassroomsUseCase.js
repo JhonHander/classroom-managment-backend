@@ -6,7 +6,7 @@ class FindAvailableClassroomsUseCase {
   }
 
   async execute({ date, startHour, endHour, capacity, features }) {
-    console.log('[DEBUG] Params in useCase:', { date, startHour, endHour });
+    // console.log('[DEBUG] Params in useCase:', { date, startHour, endHour });
     // Step 1: Validate input
     if (!date || !startHour || !endHour) {
       throw new Error('Date, start time and end time are required');
@@ -27,9 +27,9 @@ class FindAvailableClassroomsUseCase {
     }
 
     // Step 3: Filter out classrooms that have scheduled classes
-    const availableIds = availableClassrooms.map(classroom => classroom.id);
+    const available = availableClassrooms.map(classroom => classroom.classroomFullName);
     const classroomsWithSchedules = await this.scheduleRepository.getSchedulesByClassroomIdAndDateAndTime(
-      availableIds,
+      available,
       dayOfWeek,
       startHour,
       endHour
