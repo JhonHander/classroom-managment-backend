@@ -8,9 +8,10 @@ class FindAvailableClassroomsUseCase {
     this.scheduleRepository = scheduleRepository;
   }
 
-  async execute({ date, startTime, endTime, capacity, features }) {
+  async execute({ date, startHour, endHour, capacity, features }) {
+    // console.log('[DEBUG] Params in useCase:', { date, startHour, endHour });
     // Step 1: Validate input
-    if (!date || !startTime || !endTime) {
+    if (!date || !startHour || !endHour) {
       throw new Error('Date, start time and end time are required');
     }
 
@@ -20,8 +21,8 @@ class FindAvailableClassroomsUseCase {
     
     // Step 2: Get classrooms that don't have reservations for the specified time range
     const availableClassrooms = await this.classroomRepository.getAvailable(
-      new Date(`${date}T${startTime}`), 
-      new Date(`${date}T${endTime}`)
+      new Date(`${date}T${startHour}`), 
+      new Date(`${date}T${endHour}`)
     );
 
     if (availableClassrooms.length === 0) {
@@ -29,12 +30,12 @@ class FindAvailableClassroomsUseCase {
     }
 
     // Step 3: Filter out classrooms that have scheduled classes
-    const availableIds = availableClassrooms.map(classroom => classroom.id);
-    const classroomsWithSchedules = await this.scheduleRepository.findConflictsByTime(
-      availableIds,
+    const available = availableClassrooms.map(classroom => classroom.classroomFullName);
+    const classroomsWithSchedules = await this.scheduleRepository.getSchedulesByClassroomIdAndDateAndTime(
+      available,
       dayOfWeek,
-      startTime,
-      endTime
+      startHour,
+      endHour
     );
 
     // IDs of classrooms that have scheduled classes during the requested time
