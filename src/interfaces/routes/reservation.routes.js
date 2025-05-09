@@ -1,6 +1,7 @@
 import express from 'express';
 import container from '../../config/container.js';
 import ReservationController from '../controllers/ReservationController.js';
+import { authenticate, authorizeRoles } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ const reservationController = container.resolve('reservationController');
  * @query {string} [status] - Filter by reservation status
  * @returns {Array} JSON array of reservations
  */
-router.get('/', (req, res) => reservationController.getAllReservations(req, res));
+router.get('/', authenticate(), (req, res) => reservationController.getAllReservations(req, res));
 
 /**
  * @route GET /api/reservations/:id
@@ -26,7 +27,7 @@ router.get('/', (req, res) => reservationController.getAllReservations(req, res)
  * @param {string} id - Reservation ID
  * @returns {Object} JSON object with reservation details
  */
-router.get('/:id', (req, res) => reservationController.getReservationById(req, res));
+router.get('/:id', authenticate(), (req, res) => reservationController.getReservationById(req, res));
 
 /**
  * @route GET /api/reservations/user/:userId
@@ -35,7 +36,7 @@ router.get('/:id', (req, res) => reservationController.getReservationById(req, r
  * @param {string} userId - User ID
  * @returns {Array} JSON array of user's reservations
  */
-router.get('/user/:userId', (req, res) => reservationController.getReservationsByUserId(req, res));
+router.get('/user/', authenticate(), (req, res) => reservationController.getReservationsByUserId(req, res));
 
 /**
  * @route GET /api/reservations/classroom/:classroomFullName
@@ -44,7 +45,7 @@ router.get('/user/:userId', (req, res) => reservationController.getReservationsB
  * @param {string} classroomFullName - Classroom full name (e.g., "10-101")
  * @returns {Array} JSON array of classroom's reservations
  */
-router.get('/classroom/:classroomFullName', (req, res) => reservationController.getReservationsByClassroom(req, res));
+router.get('/classroom/:classroomFullName', authenticate(), (req, res) => reservationController.getReservationsByClassroom(req, res));
 
 /**
  * @route POST /api/reservations
@@ -57,7 +58,7 @@ router.get('/classroom/:classroomFullName', (req, res) => reservationController.
  * @body {string} finishHour - End time in HH:MM format
  * @returns {Object} JSON response with created reservation
  */
-router.post('/', (req, res) => reservationController.createReservation(req, res));
+router.post('/', authenticate(), (req, res) => reservationController.createReservation(req, res));
 
 /**
  * @route PUT /api/reservations/:id
@@ -69,7 +70,7 @@ router.post('/', (req, res) => reservationController.createReservation(req, res)
  * @body {string} [finishHour] - Updated end time
  * @returns {Object} JSON response with updated reservation
  */
-router.put('/:id', (req, res) => reservationController.updateReservation(req, res));
+router.put('/:id', authenticate(), (req, res) => reservationController.updateReservation(req, res));
 
 /**
  * @route DELETE /api/reservations/:id
@@ -78,16 +79,16 @@ router.put('/:id', (req, res) => reservationController.updateReservation(req, re
  * @param {string} id - Reservation ID
  * @returns {Object} JSON response with success status
  */
-router.delete('/:id', (req, res) => reservationController.cancelReservation(req, res));
+router.delete('/:id', authenticate(), (req, res) => reservationController.cancelReservation(req, res));
 
 /**
- * @route GET /api/reservations/active/user/:userId
+ * @route GET /api/reservations/active/user/:email
  * @desc Check if a user has any active reservations
  * @access Private
- * @param {string} userId - User ID
+ * @param {string} email - User email
  * @returns {Object} JSON response with active reservation or empty if none
  */
-router.get('/active/user/:userId', (req, res) => reservationController.getActiveReservationByUserId(req, res));
+router.get('/active/user/:email', authenticate(), (req, res) => reservationController.getActiveReservationByUser(req, res));
 
 /**
  * @route GET /api/reservations/date/:date
@@ -96,6 +97,6 @@ router.get('/active/user/:userId', (req, res) => reservationController.getActive
  * @param {string} date - Date in YYYY-MM-DD format
  * @returns {Array} JSON array of reservations on the given date
  */
-router.get('/date/:date', (req, res) => reservationController.getReservationsByDate(req, res));
+router.get('/date/:date', authenticate(), (req, res) => reservationController.getReservationsByDate(req, res));
 
 export default router;

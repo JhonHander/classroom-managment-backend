@@ -21,11 +21,11 @@ class LoginUserUseCase {
       throw new Error('Invalid credentials');
     }
 
-    // Step 4: Generate JWT token
+    // Step 4: Generate JWT token with email as primary identifier
     const tokenPayload = {
-      userId: user.id,
-      email: user.email,
-      role: user.role?.name || 'user' // Assuming role is an object with a name property
+      email: user.email,       // Email como identificador principal
+      userId: user.id,         // Mantener userId por compatibilidad
+      role: user.role?.name || 'user'
     };
     
     const token = await this.jwtService.generateToken(tokenPayload);

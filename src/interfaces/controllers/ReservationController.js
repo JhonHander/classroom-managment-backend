@@ -42,13 +42,13 @@ class ReservationController {
         success: true,
         message: 'Reservation created successfully',
         data: {
-          id: reservation.id,
-          userId: reservation.userId,
-          classroomId: reservation.classroomId,
+          // id: reservation.id,
+          email: reservation.user.email,
+          classroomFullName: reservation.classroom.classroomFullName,
           date: reservation.date,
           startHour: reservation.startHour,
           finishHour: reservation.finishHour,
-          status: 'pending',
+          status: reservation.reservationStatus?.name || 'pending',
           classroom: reservation.classroom ? {
             id: reservation.classroom.id,
             fullName: reservation.classroom.fullName
@@ -61,13 +61,10 @@ class ReservationController {
         }
       });
     } catch (error) {
-      console.error('Error creating reservation:', error);
-      
-      // Send appropriate error response
-      res.status(error.statusCode || 400).json({
+      console.error('[ReservationController] Error creating reservation:', error);
+      res.status(400).json({
         success: false,
         message: error.message || 'Failed to create reservation',
-        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
@@ -142,8 +139,8 @@ class ReservationController {
    */
   async getReservationsByUserId(req, res) {
     try {
-      const { userId } = req.params;
-      const reservations = await this.getReservationsByUserUseCase.execute(userId);
+      const { email } = req.params;
+      const reservations = await this.getReservationsByUserUseCase.execute(email);
 
       res.status(200).json({
         success: true,
@@ -255,13 +252,13 @@ class ReservationController {
 
   /**
    * Get active reservation for a specific user
-   * @param {Object} req - Express request object with user ID param
+   * @param {Object} req - Express request object with user email param
    * @param {Object} res - Express response object
    */
-  async getActiveReservationByUserId(req, res) {
+  async getActiveReservationByUser(req, res) {
     try {
-      const { userId } = req.params;
-      const activeReservation = await this.getActiveReservationUseCase.execute(userId);
+      const { email } = req.path.params;
+      const activeReservation = await this.getActiveReservationUseCase.execute(email);
 
       res.status(200).json({
         success: true,

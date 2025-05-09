@@ -13,8 +13,14 @@ class GetActiveReservationUserUseCase {
      * @param {string|number} userId - The ID of the user
      * @returns {Promise<Object|null>} - The active reservation or null if none exists
      */
-    async execute(userId) {
-        return this.reservationRepository.findActiveByUserId(userId);
+    async execute(email) {
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            throw new Error(`User with email ${email} not found`);
+        }
+        console.log('email', email);
+        console.log('user', user);
+        return this.reservationRepository.findActiveByUserId(user.id);
     }
 }
 

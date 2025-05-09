@@ -263,7 +263,8 @@ container.register('getActiveReservationUseCase', (c) => {
 
 container.register('getReservationsByUserUseCase', (c) => {
   return new GetReservationsByUserUseCase(
-    c.resolve('reservationRepository')
+    c.resolve('reservationRepository'),
+    c.resolve('userRepository')
   );
 });
 

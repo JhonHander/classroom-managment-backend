@@ -6,6 +6,7 @@
 class GetReservationsByUserUseCase {
     constructor(reservationRepository) {
         this.reservationRepository = reservationRepository;
+        this.userRepository = reservationRepository.userRepository; // Assuming userRepository is accessible from reservationRepository
     }
 
     /**
@@ -13,8 +14,12 @@ class GetReservationsByUserUseCase {
      * @param {string|number} userId - The ID of the user
      * @returns {Promise<Array>} - Array of reservations for the user
      */
-    async execute(userId) {
-        return this.reservationRepository.findByUserId(userId);
+    async execute(email) {
+        const user = await this.userRepository.findByEmail(email);
+        if (!user) {
+            throw new Error(`User with email ${email} not found`);
+        }
+        return this.reservationRepository.findByUserId(user.id);
     }
 }
 

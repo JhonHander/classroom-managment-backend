@@ -10,11 +10,11 @@ class CreateReservationDTO {
    * @throws {Error} - If validation fails
    */
   static validate(data) {
-    const { userId, classroomFullName, date, startHour, finishHour } = data;
+    const { email, classroomFullName, date, startHour, finishHour } = data;
 
     // Required fields validation
-    if (!userId) {
-      throw new Error('User ID is required');
+    if (!email) {
+      throw new Error('User email is required');
     }
 
     if (!classroomFullName) {
@@ -33,9 +33,10 @@ class CreateReservationDTO {
       throw new Error('Finish hour is required');
     }
 
-    // Type validation
-    if (isNaN(parseInt(userId))) {
-      throw new Error('User ID must be a number');
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
     }
 
     // Classroom fullName validation - formato "10-101" o "8-102"
@@ -86,7 +87,7 @@ class CreateReservationDTO {
     const validatedData = this.validate(data);
 
     return {
-      userId: parseInt(validatedData.userId),
+      email: validatedData.email,
       classroomFullName: validatedData.classroomFullName,
       date: validatedData.date,
       startHour: validatedData.startHour,
