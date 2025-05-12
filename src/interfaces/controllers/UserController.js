@@ -2,9 +2,10 @@ import { RegisterUserDTO } from '../dtos/RegisterUserDTO.js';
 import { LoginUserDTO } from '../dtos/LoginUserDTO.js';
 
 class UserController {
-  constructor(registerUserUseCase, loginUserUseCase) {
+  constructor(registerUserUseCase, loginUserUseCase, refreshTokenUseCase) {
     this.registerUserUseCase = registerUserUseCase;
     this.loginUserUseCase = loginUserUseCase;
+    this.refreshTokenUseCase = refreshTokenUseCase;
   }
 
   /**
@@ -79,14 +80,14 @@ class UserController {
       }
 
       const loginUserData = loginUserDTO.toData();
-      const result = await this.loginUserUseCase.execute(loginUserData);
-
+      const result = await this.loginUserUseCase.execute(loginUserData);      
       return res.status(200).json({
         success: true,
         message: 'Login successful',
         data: {
           user: result.user,
-          token: result.token
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken
         }
       });
     } catch (error) {
@@ -103,6 +104,48 @@ class UserController {
         success: false,
         message: 'Failed to log in',
         error: error.message
+      });
+    }
+  }
+
+  /**
+   * Refresh an expired access token
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async refreshToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Refresh token is required'
+        });
+      }
+
+      const result = await this.refreshTokenUseCase.execute(refreshToken);
+
+      if (!result.success) {
+        return res.status(401).json({
+          success: false,
+          message: result.message || 'Invalid refresh token'
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Token refreshed successfully',
+        data: {
+          accessToken: result.data.accessToken,
+          user: result.data.user
+        }
+      });
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to refresh token'
       });
     }
   }

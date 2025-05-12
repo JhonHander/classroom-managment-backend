@@ -20,11 +20,12 @@ import EmailNotificationService from '../infrastructure/services/EmailNotificati
 import RegisterUserUseCase from '../application/use-cases/auth/RegisterUserUseCase.js';
 import LoginUserUseCase from '../application/use-cases/auth/LoginUserUseCase.js';
 import VerifyTokenUseCase from '../application/use-cases/auth/VerifyTokenUseCase.js';
+import RefreshTokenUseCase from '../application/use-cases/auth/RefreshTokenUseCase.js';
 import FindAvailableClassroomsUseCase from '../application/use-cases/classroom/FindAvailableClassroomsUseCase.js';
 import CreateReservationUseCase from '../application/use-cases/reservation/CreateReservationUseCase.js';
-import GetAllReservationsUseCase from '../application/use-cases/reservation/GetAllReservationsUseCase.js';
+import GetAllReservationsUseCase from '../application/use-cases/reservation/admin/GetAllReservationsUseCase.js';
 import GetReservationByIdUseCase from '../application/use-cases/reservation/GetReservationByIdUseCase.js';
-import UpdateReservationUseCase from '../application/use-cases/reservation/UpdateReservationUseCase.js';
+import UpdateReservationUseCase from '../application/use-cases/reservation/admin/UpdateReservationUseCase.js';
 import CancelReservationUseCase from '../application/use-cases/reservation/CancelReservationUseCase.js';
 import GetActiveReservationUserUseCase from '../application/use-cases/reservation/GetActiveReservationUserUseCase.js';
 import GetReservationsByUserUseCase from '../application/use-cases/reservation/GetReservationsByUserUseCase.js';
@@ -169,7 +170,9 @@ container.register('hashingService', () => {
 container.register('jwtService', () => {
     const secret = process.env.JWT_SECRET;
     const expiresIn = process.env.JWT_EXPIRES_IN;
-    return new JsonWebTokenService(secret, expiresIn);
+    const refreshSecret = process.env.JWT_REFRESH_SECRET;
+    const refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN;
+    return new JsonWebTokenService(secret, expiresIn, refreshSecret, refreshExpiresIn);
 }, { singleton: true });
 
 container.register('emailNotificationService', () => {
@@ -210,6 +213,13 @@ container.register('loginUserUseCase', (c) => {
 
 container.register('verifyTokenUseCase', (c) => {
   return new VerifyTokenUseCase(
+    c.resolve('jwtService'),
+    c.resolve('userRepository')
+  );
+});
+
+container.register('refreshTokenUseCase', (c) => {
+  return new RefreshTokenUseCase(
     c.resolve('jwtService'),
     c.resolve('userRepository')
   );
@@ -257,7 +267,9 @@ container.register('cancelReservationUseCase', (c) => {
 
 container.register('getActiveReservationUseCase', (c) => {
   return new GetActiveReservationUserUseCase(
-    c.resolve('reservationRepository')
+    c.resolve('reservationRepository'),
+    c.resolve('userRepository')
+
   );
 });
 
@@ -284,7 +296,8 @@ container.register('getReservationsByDateUseCase', (c) => {
 container.register('userController', (c) => {
   return new UserController(
     c.resolve('registerUserUseCase'),
-    c.resolve('loginUserUseCase')
+    c.resolve('loginUserUseCase'),
+    c.resolve('refreshTokenUseCase')
   );
 }, { singleton: true });
 
@@ -305,6 +318,7 @@ container.register('reservationController', (c) => {
     c.resolve('getActiveReservationUseCase'),
     c.resolve('getReservationsByUserUseCase'),
     c.resolve('getReservationsByClassroomUseCase'),
+    c.resolve('getReservationsByDateUseCase')
   );
 }, { singleton: true });
 

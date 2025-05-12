@@ -13,7 +13,8 @@ export const authenticate = () => {
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ 
           success: false, 
-          message: 'Error de autenticación. No se proporcionó token.' 
+          message: 'Error de autenticación. No se proporcionó token.',
+          code: 'TOKEN_MISSING'
         });
       }
 
@@ -27,7 +28,8 @@ export const authenticate = () => {
       if (!result.success) {
         return res.status(401).json({ 
           success: false, 
-          message: result.message || 'Token inválido'
+          message: result.message || 'Token inválido',
+          code: 'TOKEN_INVALID'
         });
       }
 
@@ -38,7 +40,8 @@ export const authenticate = () => {
       console.error('Error en el middleware de autenticación:', error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Error de autenticación'
+        message: 'Error de autenticación',
+        code: 'AUTH_ERROR'
       });
     }
   };
@@ -56,7 +59,8 @@ export const authorizeRoles = (roles = []) => {
       if (!req.user) {
         return res.status(401).json({ 
           success: false, 
-          message: 'Usuario no autenticado' 
+          message: 'Usuario no autenticado', 
+          code: 'USER_NOT_AUTHENTICATED'
         });
       }
 
@@ -68,10 +72,14 @@ export const authorizeRoles = (roles = []) => {
       // Verificar si el rol del usuario está en la lista de roles permitidos
       const userRole = req.user.role?.name;
       
+      console.log('User role:', userRole);
+      console.log('Required roles:', roles);
+      
       if (!userRole || !roles.includes(userRole)) {
         return res.status(403).json({ 
           success: false, 
-          message: 'No autorizado. Permisos insuficientes.' 
+          message: 'No autorizado. Permisos insuficientes.',
+          code: 'INSUFFICIENT_PERMISSIONS'
         });
       }
 
@@ -81,7 +89,8 @@ export const authorizeRoles = (roles = []) => {
       console.error('Error en la autorización de roles:', error);
       return res.status(500).json({ 
         success: false, 
-        message: 'Error de autorización' 
+        message: 'Error de autorización',
+        code: 'AUTHORIZATION_ERROR'
       });
     }
   };

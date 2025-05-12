@@ -4,9 +4,9 @@
  */
 
 class GetReservationsByUserUseCase {
-    constructor(reservationRepository) {
+    constructor(reservationRepository, userRepository) {
         this.reservationRepository = reservationRepository;
-        this.userRepository = reservationRepository.userRepository; // Assuming userRepository is accessible from reservationRepository
+        this.userRepository = userRepository;
     }
 
     /**

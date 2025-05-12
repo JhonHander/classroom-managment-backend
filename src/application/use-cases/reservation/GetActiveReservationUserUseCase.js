@@ -4,8 +4,9 @@
  */
 
 class GetActiveReservationUserUseCase {
-    constructor(reservationRepository) {
+    constructor(reservationRepository, userRepository) {
         this.reservationRepository = reservationRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -18,8 +19,6 @@ class GetActiveReservationUserUseCase {
         if (!user) {
             throw new Error(`User with email ${email} not found`);
         }
-        console.log('email', email);
-        console.log('user', user);
         return this.reservationRepository.findActiveByUserId(user.id);
     }
 }

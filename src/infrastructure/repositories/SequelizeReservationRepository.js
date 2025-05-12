@@ -38,12 +38,10 @@ export class SequelizeReservationRepository extends IReservationRepository {
         const createdModel = await this.reservationModel.create(reservationData);
         await createdModel.reload({ include: this._includeRelations() });
         return ReservationMapper.toDomain(createdModel);
-    }
-
-    async findAll() {
+    }    async findAll() {
         const reservationModels = await this.reservationModel.findAll({
             include: this._includeRelations(),
-            order: [['start_time', 'DESC']] // Opcional: ordenar
+            order: [['date', 'DESC'], ['start_hour', 'DESC']] // Ordenar por fecha y hora de inicio
         });
         return reservationModels.map(reservation => ReservationMapper.toDomain(reservation));
     }
@@ -73,27 +71,21 @@ export class SequelizeReservationRepository extends IReservationRepository {
             include: this._includeRelations()
         });
         return ReservationMapper.toDomain(reservationModel);
-    }
-
-    async findByUserId(userId) {
+    }    async findByUserId(userId) {
         const reservationModels = await this.reservationModel.findAll({
             where: { user_id: userId },
             include: this._includeRelations(),
-            order: [['start_time', 'DESC']]
+            order: [['date', 'DESC'], ['start_hour', 'DESC']]
         });
         return reservationModels.map(ReservationMapper.toDomain);
-    }
-
-    async findByClassroomId(classroomId) {
+    }    async findByClassroomId(classroomId) {
         const reservationModels = await this.reservationModel.findAll({
             where: { classroom_id: classroomId },
             include: this._includeRelations(),
-            order: [['start_time', 'DESC']]
+            order: [['date', 'DESC'], ['start_hour', 'DESC']]
         });
         return reservationModels.map(ReservationMapper.toDomain);
-    }
-
-    async findByDate(date) {
+    }    async findByDate(date) {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
@@ -101,17 +93,13 @@ export class SequelizeReservationRepository extends IReservationRepository {
 
         const reservationModels = await this.reservationModel.findAll({
             where: {
-                start_time: { // O la columna de fecha relevante
-                    [Op.between]: [startOfDay, endOfDay]
-                }
+                date: date // Usar el campo date directamente
             },
             include: this._includeRelations(),
-            order: [['start_time', 'ASC']]
+            order: [['start_hour', 'ASC']]
         });
         return reservationModels.map(ReservationMapper.toDomain);
-    }
-
-    async findByDateAndClassroomId(date, classroomId) {
+    }    async findByDateAndClassroomId(date, classroomId) {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
@@ -120,23 +108,27 @@ export class SequelizeReservationRepository extends IReservationRepository {
         const reservationModels = await this.reservationModel.findAll({
             where: {
                 classroom_id: classroomId,
-                start_time: { // O la columna de fecha relevante
-                    [Op.between]: [startOfDay, endOfDay]
-                }
+                date: date // Usar el campo date directamente
             },
             include: this._includeRelations(),
-            order: [['start_time', 'ASC']]
+            order: [['start_hour', 'ASC']]
         });
         return reservationModels.map(ReservationMapper.toDomain);
-    }
-
-    async findByStartAndFinishAndClassroomId(start, finish, classroomId) {
+    }    async findByStartAndFinishAndClassroomId(start, finish, classroomId) {
         // Encuentra reservas que se solapan con el rango [start, finish)
         const reservationModels = await this.reservationModel.findAll({
             where: {
                 classroom_id: classroomId,
-                start_time: { [Op.lt]: finish }, // La reserva empieza antes de que termine el rango
-                end_time: { [Op.gt]: start }    // La reserva termina después de que empiece el rango
+                date: start.toISOString().split('T')[0], // Obtener solo la fecha YYYY-MM-DD
+                [Op.or]: [
+                    {
+                        // La reserva empieza antes del fin y termina después del inicio
+                        [Op.and]: [
+                            { start_hour: { [Op.lt]: finish.toTimeString().substr(0,5) } },
+                            { finish_hour: { [Op.gt]: start.toTimeString().substr(0,5) } }
+                        ]
+                    }
+                ]
             },
             include: this._includeRelations()
         });
@@ -156,23 +148,14 @@ export class SequelizeReservationRepository extends IReservationRepository {
             include: this._includeRelations()
         });
         return ReservationMapper.toDomain(reservationModel);
-    }
-
-    async findByUserIdAndDate(userId, date) {
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
+    }    async findByUserIdAndDate(userId, date) {
         const reservationModels = await this.reservationModel.findAll({
             where: {
                 user_id: userId,
-                start_time: { // O la columna de fecha relevante
-                    [Op.between]: [startOfDay, endOfDay]
-                }
+                date: date // Usar el campo date directamente
             },
             include: this._includeRelations(),
-            order: [['start_time', 'ASC']]
+            order: [['start_hour', 'ASC']]
         });
         return reservationModels.map(ReservationMapper.toDomain);
     }
@@ -207,6 +190,32 @@ export class SequelizeReservationRepository extends IReservationRepository {
         } catch (error) {
             console.error('Error finding active reservations by user ID:', error);
             throw error;
+        }
+    }
+
+    async findByClassroomFullName(classroomFullName) {
+        try {
+            // Primero buscamos el aula por su nombre completo
+            const classroom = await this.classroomModel.findOne({
+                where: { classroom_full_name: classroomFullName }
+            });
+
+            if (!classroom) {
+                console.log(`Aula con nombre ${classroomFullName} no encontrada en findByClassroomFullName`);
+                return []; // Retorna un array vacío si no encuentra el aula
+            }
+
+            // Luego buscamos las reservas asociadas a ese aula
+            const reservationModels = await this.reservationModel.findAll({
+                where: { classroom_id: classroom.id },
+                include: this._includeRelations(),
+                order: [['date', 'DESC'], ['start_hour', 'DESC']]
+            });
+            
+            return reservationModels.map(model => ReservationMapper.toDomain(model));
+        } catch (error) {
+            console.error(`Error en findByClassroomFullName para ${classroomFullName}:`, error);
+            return []; // Devolvemos array vacío en caso de error
         }
     }
 }

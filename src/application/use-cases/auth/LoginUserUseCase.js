@@ -21,16 +21,23 @@ class LoginUserUseCase {
       throw new Error('Invalid credentials');
     }
 
-    // Step 4: Generate JWT token with email as primary identifier
+    // Step 4: Generate JWT token with email and user data
     const tokenPayload = {
-      email: user.email,       // Email como identificador principal
-      userId: user.id,         // Mantener userId por compatibilidad
-      role: user.role?.name || 'user'
+      id: user.id,
+      email: user.email,
+      role: {
+        id: user.role.id,
+        name: user.role.name
+      }
     };
     
-    const token = await this.jwtService.generateToken(tokenPayload);
+    // Generate access token
+    const accessToken = await this.jwtService.generateToken(tokenPayload);
+    
+    // Generate refresh token
+    const refreshToken = await this.jwtService.generateRefreshToken(tokenPayload);
 
-    // Step 5: Return user data and token
+    // Step 5: Return user data and tokens
     return {
       user: {
         id: user.id,
@@ -38,7 +45,8 @@ class LoginUserUseCase {
         email: user.email,
         role: user.role
       },
-      token
+      accessToken,
+      refreshToken
     };
   }
 }
