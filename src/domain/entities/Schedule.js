@@ -1,9 +1,11 @@
 class Schedule {
-    constructor({ id, day, start_hour, finish_hour, classroom_id }) {
+    constructor({ id, classroom, day, startHour, finishHour }) {
         this.id = id; // ID of the schedule
+        this.classroom = classroom; // object containing classroom information
         this.day = day; // Day of the week (e.g., Monday, Tuesday)
-        this.start_hour = start_hour; // Start hour of the schedule
-        this.finish_hour = finish_hour; // Finish hour of the schedule
-        this.classroom_id = classroom_id; // ID of the classroom associated with the schedule
+        this.startHour = startHour; // Start hour of the schedule
+        this.finishHour = finishHour; // Finish hour of the schedule
     }
 }
+
+export default Schedule;

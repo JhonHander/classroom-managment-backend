@@ -58,3 +58,8 @@ lerna-debug.log*
 
 # Optional Yarn v2 configuration file
 .yarnrc.yml
+
+.idx/
+
+# SonarQube
+sonar-project.properties

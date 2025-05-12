@@ -1,16 +1,25 @@
 class Classroom {
     // Atributos de la clase Classroom
-    constructor({ id, classroom_type_id, block, classroom_number, qr_code, capacity }) {
+    constructor({ id, classroomType, block, classroomNumber, classroomFullName, capacity }) {
         this.id = id;
-        this.classroom_type_id = classroom_type_id; // type of the classroom (1: laboratory, 2: classroom, 3: auditorium)
+        this.type = classroomType; // type of the classroom (1: laboratory, 2: classroom, 3: auditorium)
         this.block = block; // block of the classroom (e.g., 7, 8, 9)
-        this.classroom_number = classroom_number; // classroom number (e.g., 101, 102, 103)
-        this.qr_code = qr_code; // QR code for the classroom
+        this.number = classroomNumber; // classroom number (e.g., 101, 102, 103)
+        // Si el nombre completo viene de la base de datos, lo usamos
+        this._fullName = classroomFullName;
         this.capacity = capacity; // capacity of the classroom (e.g., 30, 40, 50)
     }
 
-    get classroom_full_name() {
-        return `${this.block}-${this.classroom_number}`;
+    // Getter para obtener el nombre completo
+    // Si ya tenemos el nombre de la base de datos, lo usamos,
+    // de lo contrario lo generamos con block y number
+    get fullName() {
+        return this._fullName || `${this.block}-${this.number}`;
+    }
+
+    // Usamos el fullName como código único para los QR
+    get uniqueCode() {
+        return this.fullName;
     }
 
     agregarCaracteristica(caracteristica) {
@@ -22,5 +31,6 @@ class Classroom {
     tieneCaracteristica(caracteristicaId) {
         return this.caracteristicas.some(c => c.id === caracteristicaId);
     }
-
 }
+
+export default Classroom;

@@ -4,3 +4,5 @@ class Role {
         this.name = name; // Name of the role (e.g., admin, teacher, student)
     }
 }
+
+export default Role;

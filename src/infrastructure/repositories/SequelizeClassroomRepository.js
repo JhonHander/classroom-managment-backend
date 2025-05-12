@@ -1,96 +1,144 @@
-import { IClassroomRepository } from '../../domain/repositories/IClassroomRepository.js';
-// import ClassroomModel from '../db/models/ClassroomModel.js'; // Importa el modelo Sequelize
-// import ClassroomTypeModel from '../db/models/ClassroomTypeModel.js'; // Si necesitas incluir el tipo
-// import FeatureModel from '../db/models/FeatureModel.js'; // Si necesitas incluir características
-import { Classroom } from '../../domain/entities/Classroom.js'; // Importa la entidad del dominio
-import { Op } from 'sequelize'; // Para operadores complejos si son necesarios
+import IClassroomRepository from '../../domain/repositories/IClassroomRepository.js';
+import { ClassroomMapper } from '../mappers/ClassroomMapper.js';
+import { Op } from 'sequelize'; // Necesario para consultas complejas
 
 export class SequelizeClassroomRepository extends IClassroomRepository {
-    constructor(classroomModel, classroomTypeModel, featureModel) {
-        super(); // Llama al constructor de la clase base si es necesario
-        this.classroomModel = classroomModel;
-        this.classroomTypeModel = classroomTypeModel; // Guarda los modelos inyectados
-        this.featureModel = featureModel;
+  constructor(classroomModel, classroomTypeModel, classroomFeatureModel, reservationModel) {
+    super();
+    this.classroomModel = classroomModel;
+    this.classroomTypeModel = classroomTypeModel;
+    this.classroomFeatureModel = classroomFeatureModel;
+    this.reservationModel = reservationModel; // Necesario para getAvailable
+  }
+
+  _includeRelations() {
+    return [
+      { model: this.classroomTypeModel, as: 'classroomType' },
+      {
+        model: this.classroomFeatureModel,
+        as: 'features',
+        through: { attributes: [] } // No incluir atributos de la tabla de unión
+      }
+    ];
+  }
+
+  async create(classroom) {
+    const classroomData = ClassroomMapper.toModel(classroom);
+    const createdModel = await this.classroomModel.create(classroomData);
+
+    // Manejar relación Many-to-Many con Features
+    if (classroom.features && classroom.features.length > 0) {
+      const featureIds = classroom.features.map(feature => feature.id);
+      await createdModel.setFeatures(featureIds); // Asocia las características
     }
 
-    // --- Implementación de los métodos de la interfaz ---
+    // Recargar para obtener las asociaciones incluidas
+    await createdModel.reload({ include: this._includeRelations() });
+    return ClassroomMapper.toDomain(createdModel);
+  }
 
-    async findById(id) {
-        const classroomRecord = await this.classroomModel.findByPk(id, {
-            include: [ // Ejemplo de eager loading para asociaciones
-                { model: this.classroomTypeModel, as: 'type' },
-                { model: this.featureModel, as: 'features', through: { attributes: [] } } // Excluye atributos de la tabla de unión
-            ]
-        });
-        if (!classroomRecord) return null;
+  async findById(id) {
+    const classroomModel = await this.classroomModel.findByPk(id, {
+      include: this._includeRelations()
+    });
+    return ClassroomMapper.toDomain(classroomModel);
+  }
 
-        // Mapea el registro de Sequelize a la entidad del dominio
-        // (Esto puede volverse más complejo y podrías usar un mapper dedicado)
-        return new Classroom(
-            classroomRecord.id,
-            classroomRecord.block,
-            classroomRecord.classroomNumber,
-            // ... otros campos
-            classroomRecord.type, // Objeto ClassroomType asociado
-            classroomRecord.features // Array de Features asociadas
-        );
+  async findOne(fullName) {
+    const classroomModel = await this.classroomModel.findOne({
+      where: { classroom_full_name: fullName },
+      include: this._includeRelations()
+    });
+  
+    return ClassroomMapper.toDomain(classroomModel);
+  }
+
+  async update(id, classroomChanges) {
+    const classroomModel = await this.classroomModel.findByPk(id);
+    if (!classroomModel) {
+      return null; // O lanzar un error NotFoundError
     }
 
-    async findAll() {
-        const classroomRecords = await this.classroomModel.findAll({
-            include: [
-                { model: this.classroomTypeModel, as: 'type' },
-                { model: this.featureModel, as: 'features', through: { attributes: [] } }
-            ]
-        });
-        // Mapea cada registro a una entidad Classroom
-        return classroomRecords.map(record => new Classroom(/*...*/));
+    const classroomData = ClassroomMapper.toModel(classroomChanges);
+    // Elimina el ID de los datos a actualizar para evitar problemas
+    delete classroomData.id;
+
+    await classroomModel.update(classroomData);
+
+    // Manejar actualización de relación Many-to-Many con Features
+    if (classroomChanges.features) { // Permite enviar un array vacío para desasociar todas
+      const featureIds = classroomChanges.features.map(feature => feature.id);
+      await classroomModel.setFeatures(featureIds);
     }
 
-    async findAvailable(startTime, endTime, date, requiredFeatures = []) {
-        // Esta consulta será más compleja:
-        // 1. Encuentra aulas que NO tengan reservas solapadas en `Reservas`
-        // 2. Encuentra aulas que NO tengan clases programadas solapadas en `Horarios`
-        // 3. Filtra por características si `requiredFeatures` no está vacío
-        // Necesitarás usar `Op.notIn`, subconsultas o JOINs complejos.
-        // Retorna un array de entidades Classroom disponibles.
-        throw new Error("Method findAvailable not implemented yet.");
+    await classroomModel.reload({ include: this._includeRelations() });
+    return ClassroomMapper.toDomain(classroomModel);
+  }
+
+  async delete(id) {
+    const result = await this.classroomModel.destroy({
+      where: { id: id }
+    });
+    return result > 0; // Devuelve true si se eliminó al menos una fila
+  }
+
+  async getByBlock(block) {
+    const classroomModels = await this.classroomModel.findAll({
+      where: { block: block },
+      include: this._includeRelations()
+    });
+    // Corregido: Usa una función anónima para pasar cada elemento individualmente al mapper
+    return classroomModels.map(classroom => ClassroomMapper.toDomain(classroom));
+  }
+
+  async getWithFeatures(featureIds) {
+    if (!Array.isArray(featureIds) || featureIds.length === 0) {
+      return [];
     }
-
-
-    async save(classroom) {
-        // Si el classroom tiene ID, es una actualización, si no, una creación.
-        // Necesitarás mapear la entidad Classroom de vuelta a un objeto
-        // que ClassroomModel.create o instance.update entienda.
-        if (classroom.id) {
-            // Actualizar
-            const classroomRecord = await this.classroomModel.findByPk(classroom.id);
-            if (classroomRecord) {
-                await classroomRecord.update({ /* ... campos mapeados ... */ });
-                // Manejar asociaciones (ej. setFeatures) si es necesario
-            } else {
-                throw new Error(`Classroom with id ${classroom.id} not found`);
-            }
-        } else {
-            // Crear
-            const newRecord = await this.classroomModel.create({ /* ... campos mapeados ... */ });
-            classroom.id = newRecord.id; // Actualiza el ID en la entidad
-            // Manejar asociaciones (ej. setFeatures) si es necesario
+    const classroomModels = await this.classroomModel.findAll({
+      include: [
+        { model: this.classroomTypeModel, as: 'classroomType' },
+        {
+          model: this.classroomFeatureModel,
+          as: 'features',
+          where: { id: { [Op.in]: featureIds } },
+          through: { attributes: [] },
+          required: true // INNER JOIN para asegurar que tenga al menos una de las features
         }
-        return classroom; // Devuelve la entidad actualizada/creada
-    }
+      ],
+      // Opcional: si quieres aulas que tengan TODAS las features especificadas
+      // group: ['ClassroomModel.id'], // Agrupa por aula
+      // having: sequelize.literal(`COUNT(DISTINCT "features"."id") = ${featureIds.length}`) // Cuenta las features distintas
+    });
+    return classroomModels.map(ClassroomMapper.toDomain);
+  }
 
-    // ... Implementa otros métodos necesarios (delete, findByQrCode, etc.)
+  async getAvailable(startTime, endTime) {
+    // Encuentra IDs de aulas que tienen reservas que se solapan con el rango dado
+    const reservedClassroomIds = await this.reservationModel.findAll({
+      attributes: ['classroom_id'],
+      where: {
+        // La reserva termina después de que inicia el rango Y
+        // La reserva inicia antes de que termine el rango
+        finish_hour: { [Op.gt]: startTime },
+        start_hour: { [Op.lt]: endTime },
+        // Podrías añadir filtro por estado de reserva si es necesario (ej: solo confirmadas)
+        // reservation_status_id: ID_DEL_ESTADO_CONFIRMADO
+      },
+      group: ['classroom_id'],
+      raw: true, // Obtener solo los datos planos
+    }).then(reservations => reservations.map(r => r.classroom_id));
 
-    async create(classroomData) {
-        const classroom = await this.classroomModel.create(classroomData);
-        return new Classroom({
-            id: classroom.id,
-            classroom_type_id: classroom.classroom_type_id,
-            block: classroom.block,
-            classroom_number: classroom.classroom_number,
-            qr_code: classroom.qr_code,
-            capacity: classroom.capacity
-        });
-    }
+    // Encuentra todas las aulas que NO están en la lista de reservadas
+    const availableClassrooms = await this.classroomModel.findAll({
+      where: {
+        id: { [Op.notIn]: reservedClassroomIds }
+      },
+      include: this._includeRelations(),
+      order: [['classroomFullName', 'ASC']] // Opcional: ordenar resultados
+    });
+
+    // Corregido: Usa una función anónima para pasar cada elemento individualmente al mapper
+    return availableClassrooms.map(classroom => ClassroomMapper.toDomain(classroom));
+  }
 }

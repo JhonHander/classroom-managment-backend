@@ -9,3 +9,5 @@ class ReservationStatus {
     }
 
 }
+
+export default ReservationStatus;

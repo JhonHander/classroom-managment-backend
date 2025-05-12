@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../../../config/database.js'; // Ajusta la ruta si es necesario
 
-const ScheduleModel = sequelize.define('Schedule', {
+const defineScheduleModel = (sequelize) => {
+    const ScheduleModel = sequelize.define('Schedule', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -27,9 +27,12 @@ const ScheduleModel = sequelize.define('Schedule', {
         allowNull: false,
         field: 'finish_hour', // Mapea finishHour a finish_hour
     },
-}, {
+    }, {
     tableName: 'Schedule', // Nombre exacto de la tabla en la BD
     timestamps: false, // Deshabilita createdAt y updatedAt
-});
+    });
+    
+    return ScheduleModel;
+};
 
-export default ScheduleModel;
+export default defineScheduleModel;
