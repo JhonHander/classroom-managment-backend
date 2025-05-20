@@ -1,8 +1,8 @@
-/** @type {import('jest').Config} */
-const config = {
+export default {
   verbose: true,
-  testEnvironment: 'node', //  Para pruebas en el entorno de Node.js
-  //  Puedes añadir otras configuraciones si necesitas, como transformaciones, mocks, etc.
+  testEnvironment: 'node',
+  transform: {},
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)$": "$1"
+  },
 };
-
-module.exports = config;

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Test Client</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .connection-status {
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+    .connected {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .disconnected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, button {
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0069d9;
+    }
+    .log-container {
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: #f8f9fa;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    .event {
+      color: #0c5460;
+      background-color: #d1ecf1;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .timestamp {
+      color: #6c757d;
+      font-size: 0.85em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cliente de Pruebas WebSocket</h1>
+    
+    <div id="status" class="connection-status disconnected">
+      Desconectado
+    </div>
+    
+    <div class="section">
+      <h2>Conexión</h2>
+      <label for="serverUrl">URL del Servidor:</label>
+      <input type="text" id="serverUrl" value="http://localhost:3000" style="width: 300px;">
+      
+      <div>
+        <button id="connectBtn">Conectar</button>
+        <button id="disconnectBtn" disabled>Desconectar</button>
+      </div>
+    </div>
+    
+    <div class="section">
+      <h2>Autenticación / Registro</h2>
+      <label for="userId">ID de Usuario:</label>
+      <input type="text" id="userId" value="user123" style="width: 200px;">
+      <button id="registerUserBtn" disabled>Registrar Usuario</button>
+    </div>
+    
+    <div class="section">
+      <h2>Suscripción a Aulas</h2>
+      <label for="classroomId">ID de Aula:</label>
+      <input type="text" id="classroomId" value="classroom123" style="width: 200px;">
+      <button id="joinClassroomBtn" disabled>Unirse al Aula</button>
+      <button id="leaveClassroomBtn" disabled>Salir del Aula</button>
+    </div>
+    
+    <div class="section">
+      <h2>Suscripciones Generales</h2>
+      <button id="subscribeOccupancyBtn" disabled>Suscribirse a Ocupación</button>
+      <button id="unsubscribeOccupancyBtn" disabled>Cancelar Suscripción a Ocupación</button>
+      <br><br>
+      <button id="subscribeReservationsBtn" disabled>Suscribirse a Reservas</button>
+      <button id="unsubscribeReservationsBtn" disabled>Cancelar Suscripción a Reservas</button>
+    </div>
+    
+    <div class="section">
+      <h2>Pruebas de Comunicación</h2>
+      <button id="pingBtn" disabled>Ping al Servidor</button>
+    </div>
+    
+    <div class="section">
+      <h2>Registro de Eventos</h2>
+      <div id="log" class="log-container"></div>
+    </div>
+  </div>
+
+  <!-- Incluir Socket.IO Client -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  
+  <script>
+    // Referencias a elementos del DOM
+    const statusEl = document.getElementById('status');
+    const serverUrlInput = document.getElementById('serverUrl');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const userIdInput = document.getElementById('userId');
+    const registerUserBtn = document.getElementById('registerUserBtn');
+    const classroomIdInput = document.getElementById('classroomId');
+    const joinClassroomBtn = document.getElementById('joinClassroomBtn');
+    const leaveClassroomBtn = document.getElementById('leaveClassroomBtn');
+    const subscribeOccupancyBtn = document.getElementById('subscribeOccupancyBtn');
+    const unsubscribeOccupancyBtn = document.getElementById('unsubscribeOccupancyBtn');
+    const subscribeReservationsBtn = document.getElementById('subscribeReservationsBtn');
+    const unsubscribeReservationsBtn = document.getElementById('unsubscribeReservationsBtn');
+    const pingBtn = document.getElementById('pingBtn');
+    const logEl = document.getElementById('log');
+    
+    // Variables globales
+    let socket = null;
+    let connectedClassrooms = new Set();
+    
+    // Función para actualizar el registro de eventos
+    function log(message, eventType = null) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      
+      const timestamp = document.createElement('span');
+      timestamp.className = 'timestamp';
+      timestamp.textContent = new Date().toLocaleTimeString();
+      
+      entry.appendChild(timestamp);
+      entry.appendChild(document.createTextNode(' '));
+      
+      if (eventType) {
+        const eventSpan = document.createElement('span');
+        eventSpan.className = 'event';
+        eventSpan.textContent = eventType;
+        entry.appendChild(eventSpan);
+        entry.appendChild(document.createTextNode(' '));
+      }
+      
+      entry.appendChild(document.createTextNode(message));
+      
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    
+    // Función para actualizar el estado de los botones
+    function updateButtonStates(isConnected) {
+      connectBtn.disabled = isConnected;
+      disconnectBtn.disabled = !isConnected;
+      registerUserBtn.disabled = !isConnected;
+      joinClassroomBtn.disabled = !isConnected;
+      leaveClassroomBtn.disabled = !isConnected;
+      subscribeOccupancyBtn.disabled = !isConnected;
+      unsubscribeOccupancyBtn.disabled = !isConnected;
+      subscribeReservationsBtn.disabled = !isConnected;
+      unsubscribeReservationsBtn.disabled = !isConnected;
+      pingBtn.disabled = !isConnected;
+    }
+    
+    // Función para actualizar el estado de conexión visual
+    function updateConnectionStatus(isConnected) {
+      if (isConnected) {
+        statusEl.className = 'connection-status connected';
+        statusEl.textContent = 'Conectado';
+      } else {
+        statusEl.className = 'connection-status disconnected';
+        statusEl.textContent = 'Desconectado';
+      }
+      updateButtonStates(isConnected);
+    }
+    
+    // Evento de clic en el botón de conexión
+    connectBtn.addEventListener('click', () => {
+      const serverUrl = serverUrlInput.value.trim();
+      
+      if (!serverUrl) {
+        alert('Por favor ingresa la URL del servidor');
+        return;
+      }
+      
+      try {
+        // Crear la conexión Socket.IO
+        socket = io(serverUrl, {
+          transports: ['websocket', 'polling']
+        });
+        
+        // Manejar evento de conexión
+        socket.on('connect', () => {
+          log('Conectado al servidor', 'connect');
+          updateConnectionStatus(true);
+        });
+        
+        // Manejar evento de desconexión
+        socket.on('disconnect', (reason) => {
+          log(`Desconectado del servidor: ${reason}`, 'disconnect');
+          updateConnectionStatus(false);
+        });
+        
+        // Manejar evento de error de conexión
+        socket.on('connect_error', (error) => {
+          log(`Error de conexión: ${error.message}`, 'error');
+          updateConnectionStatus(false);
+        });
+        
+        // Configurar manejo de eventos de WebSocket
+        setupEventHandlers();
+        
+        log('Intentando conectar a ' + serverUrl);
+      } catch (error) {
+        log(`Error al crear la conexión: ${error.message}`, 'error');
+      }
+    });
+    
+    // Evento de clic en el botón de desconexión
+    disconnectBtn.addEventListener('click', () => {
+      if (socket) {
+        socket.disconnect();
+        socket = null;
+        connectedClassrooms.clear();
+        log('Desconectado manualmente', 'disconnect');
+        updateConnectionStatus(false);
+      }
+    });
+    
+    // Evento de clic en el botón de registro de usuario
+    registerUserBtn.addEventListener('click', () => {
+      if (!socket) return;
+      
+      const userId = userIdInput.value.trim();
+      if (!userId) {
+        alert('Por favor ingresa un ID de usuario');
+        return;
+      }
+      
+      socket.emit('register-user', { userId });
+      log(`Enviado evento de registro de usuario: ${userId}`, 'register-user');
+    });
+    
+    // Evento de clic en el botón de unirse a un aula
+    joinClassroomBtn.addEventListener('click', () => {
+      if (!socket) return;
+      
+      const classroomId = classroomIdInput.value.trim();
+      if (!classroomId) {
+        alert('Por favor ingresa un ID de aula');
+        return;
+      }
+      
+      socket.emit('join-classroom', classroomId);
+      connectedClassrooms.add(classroomId);
+      log(`Enviado evento para unirse al aula: ${classroomId}`, 'join-classroom');
+    });
+    
+    // Evento de clic en el botón de salir de un aula
+    leaveClassroomBtn.addEventListener('click', () => {
+      if (!socket) return;
+      
+      const classroomId = classroomIdInput.value.trim();
+      if (!classroomId) {
+        alert('Por favor ingresa un ID de aula');
+        return;
+      }
+      
+      socket.emit('leave-classroom', classroomId);
+      connectedClassrooms.delete(classroomId);
+      log(`Enviado evento para salir del aula: ${classroomId}`, 'leave-classroom');
+    });
+    
+    // Evento de clic en el botón de suscripción a ocupación
+    subscribeOccupancyBtn.addEventListener('click', () => {
+      if (!socket) return;
+      socket.emit('subscribe-occupancy-updates');
+      log('Suscrito a actualizaciones de ocupación', 'subscribe-occupancy');
+    });
+    
+    // Evento de clic en el botón de cancelar suscripción a ocupación
+    unsubscribeOccupancyBtn.addEventListener('click', () => {
+      if (!socket) return;
+      socket.emit('unsubscribe-occupancy-updates');
+      log('Cancelada suscripción a actualizaciones de ocupación', 'unsubscribe-occupancy');
+    });
+    
+    // Evento de clic en el botón de suscripción a reservas
+    subscribeReservationsBtn.addEventListener('click', () => {
+      if (!socket) return;
+      socket.emit('subscribe-reservation-updates');
+      log('Suscrito a actualizaciones de reservas', 'subscribe-reservations');
+    });
+    
+    // Evento de clic en el botón de cancelar suscripción a reservas
+    unsubscribeReservationsBtn.addEventListener('click', () => {
+      if (!socket) return;
+      socket.emit('unsubscribe-reservation-updates');
+      log('Cancelada suscripción a actualizaciones de reservas', 'unsubscribe-reservations');
+    });
+    
+    // Evento de clic en el botón de ping
+    pingBtn.addEventListener('click', () => {
+      if (!socket) return;
+      
+      const startTime = Date.now();
+      socket.emit('ping', (response) => {
+        const latency = Date.now() - startTime;
+        log(`Ping completado en ${latency}ms. Socket ID: ${response.socketId}`, 'ping');
+      });
+      
+      log('Enviado ping al servidor');
+    });
+    
+    // Configurar manejadores de eventos WebSocket
+    function setupEventHandlers() {
+      if (!socket) return;
+      
+      // Evento cuando se registra un usuario
+      socket.on('user-registered', (data) => {
+        log(`Usuario registrado: ${JSON.stringify(data)}`, 'user-registered');
+      });
+      
+      // Evento cuando se une a una sala de aula
+      socket.on('joined-classroom', (data) => {
+        log(`Unido al aula: ${JSON.stringify(data)}`, 'joined-classroom');
+      });
+      
+      // Eventos de cambios de ocupación
+      socket.on('occupancy-changed', (data) => {
+        log(`Actualización general de ocupación: ${JSON.stringify(data)}`, 'occupancy-changed');
+      });
+      
+      socket.on('classroom-occupancy-changed', (data) => {
+        log(`Cambio de ocupación en aula específica: ${JSON.stringify(data)}`, 'classroom-occupancy-changed');
+      });
+      
+      // Eventos de cambios de reservas
+      socket.on('reservation-changed', (data) => {
+        log(`Actualización de reserva: ${JSON.stringify(data)}`, 'reservation-changed');
+      });
+      
+      socket.on('your-reservation-changed', (data) => {
+        log(`Tu reserva ha cambiado: ${JSON.stringify(data)}`, 'your-reservation-changed');
+      });
+      
+      // Evento de actualización de disponibilidad
+      socket.on('availability-updated', (data) => {
+        log(`Disponibilidad actualizada. ${data.classrooms.length} aulas afectadas.`, 'availability-updated');
+      });
+    }
+    
+    // Inicialización
+    updateConnectionStatus(false);
+    log('Cliente WebSocket inicializado. Conecta al servidor para comenzar.');
+  </script>
+</body>
+</html>

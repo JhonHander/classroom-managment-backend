@@ -1,4 +1,4 @@
-import ITimeSeriesDataService from '../../application/ports/ITimeSeriesDataService';
+import ITimeSeriesDataService from '../../application/ports/ITimeSeriesDataService.js';
 import { InfluxDB, Point } from '@influxdata/influxdb-client';
 
 class InfluxDBService extends ITimeSeriesDataService {
