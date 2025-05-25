@@ -15,6 +15,8 @@ import { SequelizeSensorRepository } from '../infrastructure/repositories/Sequel
 import JsonWebTokenService from '../infrastructure/services/JsonWebTokenService.js';
 import HashingService from '../infrastructure/services/HashingService.js';
 import EmailNotificationService from '../infrastructure/services/EmailNotificationService.js';
+import SocketIOService from '../infrastructure/services/SocketIOService.js';
+import InfluxDBService from '../infrastructure/services/InfluxDBService.js';
 
 // --- Importacion de casos de uso ---
 import RegisterUserUseCase from '../application/use-cases/auth/RegisterUserUseCase.js';
@@ -31,11 +33,19 @@ import GetActiveReservationUserUseCase from '../application/use-cases/reservatio
 import GetReservationsByUserUseCase from '../application/use-cases/reservation/GetReservationsByUserUseCase.js';
 import GetReservationsByClassroomUseCase from '../application/use-cases/reservation/GetReservationsByClassroomUseCase.js';
 import GetReservationsByDateUseCase from '../application/use-cases/reservation/GetReservationsByDateUseCase.js';
+import UpdateAvailableClassroomsRealTimeUseCase from '../application/use-cases/classroom/UpdateAvailableClassroomsRealTimeUseCase.js';
+import ProcessIoTSensorDataUseCase from '../application/use-cases/iot/ProcessIoTSensorDataUseCase.js';
+import GetRealTimeClassroomOccupancyUseCase from '../application/use-cases/iot/GetRealTimeClassroomOccupancyUseCase.js';
+
+// --- Importación de servicios IoT ---
+import RealTimeOccupancyService from '../infrastructure/services/iot/RealTimeOccupancyService.js';
 
 // --- Importación de controladores ---
 import UserController from '../interfaces/controllers/UserController.js';
 import ClassroomController from '../interfaces/controllers/ClassroomController.js';
 import ReservationController from '../interfaces/controllers/ReservationController.js';
+import IoTController from '../interfaces/controllers/IoTController.js';
+import WebSocketController from '../interfaces/controllers/WebSocketController.js';
 
 import dotenv from 'dotenv';
 
@@ -192,7 +202,33 @@ container.register('emailNotificationService', () => {
     );
 }, { singleton: true });
 
-// 5. Casos de Uso
+// Registrar el servicio de WebSockets (como singleton)
+container.register('realTimeService', () => {
+  return new SocketIOService();
+}, { singleton: true });
+
+// Registrar el servicio de InfluxDB para datos de series temporales (IoT)
+container.register('timeSeriesDataService', () => {
+  const config = {
+    url: process.env.INFLUXDB_URL || 'http://localhost:8086',
+    token: process.env.INFLUXDB_TOKEN,
+    org: process.env.INFLUXDB_ORG,
+    bucket: process.env.INFLUXDB_BUCKET || 'iot_sensors'
+  };
+  
+  return new InfluxDBService(config);
+}, { singleton: true });
+
+// Registrar el servicio de IoT para sensores de ocupación
+container.register('iotSensorService', (c) => {
+  return new RealTimeOccupancyService(
+    c.resolve('sensorRepository'),
+    c.resolve('timeSeriesDataService'),
+    c.resolve('realTimeService')
+  );
+}, { singleton: true });
+
+// 6. Casos de Uso
 container.register('registerUserUseCase', (c) => {
     return new RegisterUserUseCase(
       c.resolve('userRepository'),
@@ -292,6 +328,32 @@ container.register('getReservationsByDateUseCase', (c) => {
   );
 });
 
+// Registrar el caso de uso para aulas disponibles en tiempo real
+container.register('updateAvailableClassroomsRealTimeUseCase', (c) => {
+  return new UpdateAvailableClassroomsRealTimeUseCase(
+    c.resolve('classroomRepository'),
+    c.resolve('reservationRepository'),
+    c.resolve('webSocketController')
+  );
+});
+
+// Registrar casos de uso para IoT
+container.register('processIoTSensorDataUseCase', (c) => {
+  return new ProcessIoTSensorDataUseCase(
+    c.resolve('sensorRepository'),
+    c.resolve('classroomRepository'),
+    c.resolve('timeSeriesDataService'),
+    c.resolve('iotSensorService')
+  );
+});
+
+container.register('getRealTimeClassroomOccupancyUseCase', (c) => {
+  return new GetRealTimeClassroomOccupancyUseCase(
+    c.resolve('iotSensorService'),
+    c.resolve('classroomRepository')
+  );
+});
+
 // 6. Controladores
 container.register('userController', (c) => {
   return new UserController(
@@ -318,7 +380,19 @@ container.register('reservationController', (c) => {
     c.resolve('getActiveReservationUseCase'),
     c.resolve('getReservationsByUserUseCase'),
     c.resolve('getReservationsByClassroomUseCase'),
-    c.resolve('getReservationsByDateUseCase')
+    c.resolve('getReservationsByDateUseCase')  );
+}, { singleton: true });
+
+container.register('iotController', (c) => {
+  return new IoTController(
+    c.resolve('processIoTSensorDataUseCase'),
+    c.resolve('getRealTimeClassroomOccupancyUseCase')
+  );
+}, { singleton: true });
+
+container.register('webSocketController', (c) => {
+  return new WebSocketController(
+    c.resolve('realTimeService')
   );
 }, { singleton: true });
 
