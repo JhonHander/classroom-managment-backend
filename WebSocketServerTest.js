@@ -78,6 +78,11 @@ async function startServer() {
   // Crear aplicación Express
   const app = express();
   
+  // Configurar ruta para servir el archivo test-client.html
+  app.get('/', (req, res) => {
+    res.sendFile('test-client.html', { root: '.' });
+  });
+  
   // Crear servidor HTTP
   const server = http.createServer(app);
   

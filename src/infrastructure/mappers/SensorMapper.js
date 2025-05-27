@@ -6,20 +6,13 @@ export class SensorMapper {
      * Maps a SensorModel to a Sensor domain entity.
      * @param {Object} SensorModel - The SensorModel object to map.
      * @returns {Sensor} - The mapped Sensor domain entity.
-     * */
-
-    static toDomain(SensorModel) {
+     * */    static toDomain(SensorModel) {
         if (!SensorModel) return null;
 
         return new Sensor({
             id: SensorModel.id,
-            name: SensorModel.name,
-            classroomId: SensorModel.classroomId,
-            classroomFullName: SensorModel.classroomFullName,
-            classroomNumber: SensorModel.classroomNumber,
-            classroomBlock: SensorModel.classroomBlock,
-            classroomTypeId: SensorModel.classroomTypeId,
-            classroomTypeName: SensorModel.classroomTypeName,
+            classroomId: SensorModel.classroom_id || SensorModel.classroomId,
+            status: SensorModel.status
         });
     }
 

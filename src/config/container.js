@@ -17,7 +17,6 @@ import HashingService from '../infrastructure/services/HashingService.js';
 import EmailNotificationService from '../infrastructure/services/EmailNotificationService.js';
 import SocketIOService from '../infrastructure/services/SocketIOService.js';
 import InfluxDBService from '../infrastructure/services/InfluxDBService.js';
-
 // --- Importacion de casos de uso ---
 import RegisterUserUseCase from '../application/use-cases/auth/RegisterUserUseCase.js';
 import LoginUserUseCase from '../application/use-cases/auth/LoginUserUseCase.js';
@@ -207,16 +206,14 @@ container.register('realTimeService', () => {
   return new SocketIOService();
 }, { singleton: true });
 
-// Registrar el servicio de InfluxDB para datos de series temporales (IoT)
+// Registrar el servicio de InfluxDB
 container.register('timeSeriesDataService', () => {
-  const config = {
-    url: process.env.INFLUXDB_URL || 'http://localhost:8086',
+  return new InfluxDBService({
+    url: process.env.INFLUXDB_URL,
     token: process.env.INFLUXDB_TOKEN,
     org: process.env.INFLUXDB_ORG,
-    bucket: process.env.INFLUXDB_BUCKET || 'iot_sensors'
-  };
-  
-  return new InfluxDBService(config);
+    bucket: process.env.INFLUXDB_BUCKET
+  });
 }, { singleton: true });
 
 // Registrar el servicio de IoT para sensores de ocupación

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocupación de Salones en Tiempo Real</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .classrooms-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .classroom-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .classroom-card h2 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+        .status {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .occupied {
+            color: #d93025;
+        }
+        .available {
+            color: #188038;
+        }
+        .sensor-data {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #5f6368;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ocupación de Salones en Tiempo Real</h1>
+    <div class="classrooms-grid" id="classrooms"></div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        const classroomsDiv = document.getElementById('classrooms');
+
+        // Crear las tarjetas de los salones
+        function createClassroomCard(classroomId) {
+            const card = document.createElement('div');
+            card.className = 'classroom-card';
+            card.innerHTML = `
+                <h2>Salón ${classroomId}</h2>
+                <div class="status" id="status-${classroomId}">Estado: Esperando datos...</div>
+                <div class="sensor-data" id="sensor-${classroomId}"></div>
+            `;
+            return card;
+        }
+
+        // Inicializar las tarjetas para 4 salones
+        for (let i = 1; i <= 4; i++) {
+            classroomsDiv.appendChild(createClassroomCard(i));
+        }
+
+        // Conexión con el servidor Socket.IO
+        const socket = io('http://localhost:3000');
+
+        socket.on('connect', () => {
+            console.log('✅ Conectado al servidor Socket.IO');
+        });
+
+        // Escuchar evento enviado desde el backend
+        socket.on('occupancy-changed', (data) => {
+            console.log('📡 Datos recibidos:', data);
+            updateClassroomStatus({
+                classroomId: data.classroomId,
+                occupancy: data.isOccupied ? 1 : 0,
+                temperature: 22.5, // puedes reemplazarlo por datos reales
+                humidity: 55,
+            });
+        });
+
+        function updateClassroomStatus(data) {
+            const statusDiv = document.getElementById(`status-${data.classroomId}`);
+            const sensorDiv = document.getElementById(`sensor-${data.classroomId}`);
+            
+            if (statusDiv && sensorDiv) {
+                const isOccupied = data.occupancy > 0;
+                statusDiv.className = `status ${isOccupied ? 'occupied' : 'available'}`;
+                statusDiv.textContent = `Estado: ${isOccupied ? 'Ocupado' : 'Disponible'}`;
+                
+                sensorDiv.innerHTML = `
+                    Ocupación: ${data.occupancy} personas<br>
+                    Temperatura: ${data.temperature}°C<br>
+                    Humedad: ${data.humidity}%<br>
+                    Última actualización: ${new Date().toLocaleTimeString()}
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

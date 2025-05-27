@@ -97,5 +97,23 @@ export class SequelizeSensorRepository extends ISensorRepository {
             { where: { id: sensorId } }
         );
         return affectedRows > 0; // Devuelve true si se actualizó al menos una fila
-    }
+    }    // Comentado temporalmente
+    /*async updateLastActive(sensorId, timestamp) {
+        try {
+            const sensor = await this.sensorModel.findByPk(sensorId);
+            if (!sensor) {
+                return null;
+            }
+            
+            await sensor.update({ 
+                last_active: timestamp,
+                status: 'activo'
+            });
+            
+            return true;
+        } catch (error) {
+            console.error('Error updating sensor last active time:', error);
+            return false;
+        }
+    }*/
 }

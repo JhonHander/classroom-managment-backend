@@ -29,16 +29,22 @@ class RealTimeOccupancyService extends IoTSensorService {
    */
   async processSensorReading(sensorReading) {
     try {
+      console.log('🔍 Recibiendo datos del sensor:', {
+        sensorCode: sensorReading.sensorCode,
+        classroomId: sensorReading.classroomId,
+        value: sensorReading.value,
+        timestamp: sensorReading.timestamp
+      });
+
       // 1. Guardar la lectura en InfluxDB
       await this._saveSensorReadingToInfluxDB(sensorReading);
+      console.log('✅ Datos guardados en InfluxDB');
       
-      // 2. Actualizar el estado del sensor en SQL si es necesario
-      // await this._updateSensorInSQL(sensorReading);
-      
-      // 3. Determinar el estado de ocupación
+      // 2. Determinar el estado de ocupación
       const isOccupied = sensorReading.isClassroomOccupied();
+      console.log(`🎯 Estado de ocupación: ${isOccupied ? 'Ocupado' : 'Desocupado'}`);
       
-      // 4. Crear objeto de estado de ocupación
+      // 3. Crear objeto de estado de ocupación
       const occupancyStatus = new OccupancyStatus({
         classroomId: sensorReading.classroomId,
         isOccupied: isOccupied,
@@ -47,15 +53,16 @@ class RealTimeOccupancyService extends IoTSensorService {
         confidence: 1.0
       });
       
-      // 5. Actualizar caché
+      // 4. Actualizar caché
       this.occupancyCache.set(sensorReading.classroomId, occupancyStatus);
       
-      // 6. Notificar a los clientes en tiempo real
+      // 5. Notificar a los clientes en tiempo real
       this._notifyOccupancyChange(occupancyStatus);
+      console.log('📢 Notificación enviada a clientes en tiempo real');
       
       return occupancyStatus;
     } catch (error) {
-      console.error('Error processing sensor reading:', error);
+      console.error('❌ Error procesando datos del sensor:', error);
       throw error;
     }
   }
@@ -180,12 +187,26 @@ class RealTimeOccupancyService extends IoTSensorService {
    * @private
    */
   async _saveSensorReadingToInfluxDB(sensorReading) {
-    await this.timeSeriesDataService.saveSensorReading({
-      sensorCode: sensorReading.sensorCode,
-      classroomId: sensorReading.classroomId,
-      value: sensorReading.value,
-      timestamp: sensorReading.timestamp
-    });
+    try {
+      console.log('📊 Guardando datos en InfluxDB:', {
+        sensorCode: sensorReading.sensorCode,
+        classroomId: sensorReading.classroomId,
+        value: sensorReading.value,
+        timestamp: sensorReading.timestamp
+      });
+
+      await this.timeSeriesDataService.saveSensorReading({
+        sensorCode: sensorReading.sensorCode,
+        classroomId: sensorReading.classroomId,
+        value: sensorReading.value,
+        timestamp: sensorReading.timestamp
+      });
+
+      console.log('✅ Datos guardados exitosamente en InfluxDB');
+    } catch (error) {
+      console.error('❌ Error guardando datos en InfluxDB:', error);
+      throw error;
+    }
   }
 
   /**

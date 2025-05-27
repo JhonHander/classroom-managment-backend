@@ -9,7 +9,7 @@
   ],
   "license": "MIT",
   "author": "Jhon Hander Mejia Muñoz y Nicolas Hoyos Giraldo",
-  "type": "module", 
+  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "test": "set NODE_OPTIONS=--experimental-vm-modules && jest",

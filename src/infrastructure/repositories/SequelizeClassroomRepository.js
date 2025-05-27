@@ -141,4 +141,29 @@ export class SequelizeClassroomRepository extends IClassroomRepository {
     // Corregido: Usa una función anónima para pasar cada elemento individualmente al mapper
     return availableClassrooms.map(classroom => ClassroomMapper.toDomain(classroom));
   }
+
+  /**
+   * Actualiza el estado de ocupación de un aula
+   * @param {string|number} id - ID del aula
+   * @param {number} occupancyCount - Número de personas en el aula
+   * @returns {Promise<boolean>} - true si se actualizó correctamente
+   */
+  async updateOccupancyStatus(id, occupancyCount) {
+    try {
+      const classroom = await this.classroomModel.findByPk(id);
+      if (!classroom) {
+        throw new Error(`Aula con ID ${id} no encontrada`);
+      }
+
+      await classroom.update({
+        current_occupancy: occupancyCount,
+        last_occupancy_update: new Date()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error actualizando estado de ocupación:', error);
+      throw error;
+    }
+  }
 }

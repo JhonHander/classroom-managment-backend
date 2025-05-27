@@ -8,9 +8,9 @@ class ISensorRepository {
     // Búsquedas específicas
     async findById(id) { throw new Error("Method not implemented"); }
     async findByClassroomId(classroomId) { throw new Error("Method not implemented"); }
-    async findActiveSensors() { throw new Error("Method not implemented"); }
-    async findInactiveSensors() { throw new Error("Method not implemented"); }
+    async findActiveSensors() { throw new Error("Method not implemented"); }    async findInactiveSensors() { throw new Error("Method not implemented"); }
     async updateSensorStatus(sensorId, status) { throw new Error("Method not implemented"); }
+    async updateLastActive(sensorId, timestamp) { throw new Error("Method not implemented"); }
 }
 
 export default ISensorRepository;

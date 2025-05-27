@@ -37,7 +37,7 @@ class ProcessIoTSensorDataUseCase {
       }
 
       // Paso 2: Obtener el sensor asociado al código
-      const sensor = await this.sensorRepository.findByCode(data.sensorCode);
+      const sensor = await this.sensorRepository.findById(data.sensorCode);
       if (!sensor) {
         throw new Error(`Sensor con código ${data.sensorCode} no encontrado`);
       }
@@ -51,17 +51,12 @@ class ProcessIoTSensorDataUseCase {
       const classroom = await this.classroomRepository.findById(sensor.classroomId);
       if (!classroom) {
         throw new Error(`Aula con ID ${sensor.classroomId} no encontrada`);
-      }
-
-      // Paso 5: Normalizar datos
+      }      // Paso 5: Normalizar datos
       const timestamp = data.timestamp || new Date();
       const type = data.type || 'occupancy';
       const value = parseInt(data.value, 10);
 
-      // Paso 6: Actualizar el estado de actividad del sensor
-      await this.sensorRepository.updateLastActive(sensor.id, timestamp);
-
-      // Paso 7: Crear objeto de lectura
+      // Paso 6: Crear objeto de lectura
       const sensorReading = {
         sensorCode: data.sensorCode,
         classroomId: sensor.classroomId,
@@ -69,19 +64,17 @@ class ProcessIoTSensorDataUseCase {
         type,
         timestamp,
         isClassroomOccupied: () => value > 0
-      };
-
-      // Paso 8: Procesar la lectura a través del servicio IoT
+      };      // Paso 8: Procesar la lectura a través del servicio IoT
       const occupancyStatus = await this.iotSensorService.processSensorReading(sensorReading);
 
-      // Paso 9: Guardar lectura en base de datos de series temporales
-      await this.timeSeriesDataService.saveSensorReading({
+      // Paso 9: Comentado temporalmente el guardado en InfluxDB
+      /*await this.timeSeriesDataService.saveSensorReading({
         sensorCode: data.sensorCode, 
         classroomId: sensor.classroomId, 
         value,
         type,
         timestamp
-      });
+      });*/
 
       // Paso 10: Actualizar el estado de ocupación del aula en la base de datos relacional
       if (type === 'occupancy') {
