@@ -4,36 +4,10 @@
  */
 import { Router } from 'express';
 import container from '../../config/container.js';
-import { authenticate, authorizeRoles } from '../middleware/authMiddleware.js';
+import { sensorAuth, flexAuth } from '../middleware/iotAuthMiddleware.js';
 
 const router = Router();
 const iotController = container.resolve('iotController');
-const verifyToken = container.resolve('verifyTokenUseCase');
-
-// Middleware para autorización flexible
-// Para endpoints que pueden ser usados tanto por sensores IoT como por usuarios autenticados
-const flexAuth = (req, res, next) => {
-  // Si la petición tiene un API key válido para sensores, permitirla
-  const apiKey = req.headers['x-iot-api-key'];
-  if (apiKey === process.env.IOT_API_KEY) {
-    return next();
-  }
-  
-  // De lo contrario, usar autenticación normal (JWT)
-  return authenticate()(req, res, next);
-};
-
-// Middleware específico para sensores IoT
-const sensorAuth = (req, res, next) => {
-  const apiKey = req.headers['x-iot-api-key'];
-  if (apiKey !== process.env.IOT_API_KEY) {
-    return res.status(401).json({
-      success: false,
-      message: 'Unauthorized: Invalid API key'
-    });
-  }
-  next();
-};
 
 // Rutas públicas - disponibles para todos
 // Endpoint para obtener la ocupación actual de todas las aulas

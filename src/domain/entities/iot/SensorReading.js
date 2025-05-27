@@ -9,15 +9,15 @@ class SensorReading {
    * 
    * @param {Object} data - Datos de la lectura
    * @param {string} data.sensorCode - Código único del sensor
-   * @param {string} data.classroomId - ID del aula asociada
-   * @param {number} data.value - Valor de la lectura
-   * @param {Date} data.timestamp - Marca de tiempo de la lectura
+   * @param {string} data.classroomFullName - Nombre completo del aula asociada
+   * @param {number} data.occupancy - Valor de la lectura de ocupación (0 o 1)
+   * @param {Date | string} [data.timestamp] - Marca de tiempo de la lectura
    */
   constructor(data) {
     this.sensorCode = data.sensorCode;
-    this.classroomId = data.classroomId;
-    this.value = data.value;
-    this.timestamp = data.timestamp || new Date();
+    this.classroomFullName = data.classroomFullName;
+    this.occupancy = data.occupancy;
+    this.timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
   }
 
   /**
@@ -25,8 +25,8 @@ class SensorReading {
    * @returns {boolean} - true si está ocupada, false en caso contrario
    */
   isClassroomOccupied() {
-    // Para lecturas de tipo "occupancy", se considera ocupada si el valor es mayor a 0
-      return this.value > 0;
+    // Se considera ocupada si el valor de occupancy es 1 (o mayor que 0)
+    return this.occupancy > 0;
   }
 
   /**
@@ -36,8 +36,8 @@ class SensorReading {
   toApiResponse() {
     return {
       sensorCode: this.sensorCode,
-      classroomId: this.classroomId,
-      value: this.value,
+      classroomFullName: this.classroomFullName,
+      occupancy: this.occupancy,
       timestamp: this.timestamp,
       isOccupied: this.isClassroomOccupied()
     };

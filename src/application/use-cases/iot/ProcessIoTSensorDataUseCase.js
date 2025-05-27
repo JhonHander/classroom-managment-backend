@@ -3,6 +3,8 @@
  * Caso de uso para procesar datos de sensores IoT y actualizar la ocupación de aulas
  */
 
+import SensorReading from '../../../domain/entities/iot/SensorReading.js';
+
 class ProcessIoTSensorDataUseCase {
   /**
    * Constructor
@@ -24,16 +26,16 @@ class ProcessIoTSensorDataUseCase {
    * 
    * @param {Object} data - Datos del sensor
    * @param {string} data.sensorCode - Código del sensor
-   * @param {number} data.value - Valor de la lectura (ej: número de personas)
-   * @param {string} data.type - Tipo de lectura (ej: "occupancy", "temperature")
+   * @param {number} data.occupancy - Indicador de ocupación (0 para no ocupado, 1 para ocupado)
+   * @param {string} data.classroomFullName - Nombre completo del aula asociada
    * @param {Date} [data.timestamp] - Hora de la lectura (opcional, por defecto es ahora)
    * @returns {Promise<Object>} - Resultado del procesamiento
    */
   async execute(data) {
     try {
-      // Paso 1: Validar datos básicos
-      if (!data.sensorCode || data.value === undefined) {
-        throw new Error('El código del sensor y el valor son obligatorios');
+      // Paso 1: Validar datos básicos del ESP32
+      if (!data.sensorCode || data.occupancy === undefined || !data.classroomFullName) {
+        throw new Error('El código del sensor, el nombre completo del aula y el valor de ocupación son obligatorios');
       }
 
       // Paso 2: Obtener el sensor asociado al código
@@ -43,71 +45,52 @@ class ProcessIoTSensorDataUseCase {
       }
 
       // Paso 3: Verificar que el sensor está asociado a un aula
-      if (!sensor.classroom.id) {
-        throw new Error(`El sensor con código ${data.sensorCode} no está asociado a ningún aula`);
+      if (!sensor.classroom || !sensor.classroom.id) {
+        throw new Error(`El sensor con código ${data.sensorCode} no está asociado a ningún aula válida`);
       }
 
-      // Paso 4: Obtener el aula asociada
+      // Paso 4: Obtener el aula asociada (usando el ID del sensor)
       const classroom = await this.classroomRepository.findById(sensor.classroom.id);
       if (!classroom) {
-        throw new Error(`Aula con ID ${sensor.classroom.id} no encontrada`);
+        throw new Error(`Aula con ID ${sensor.classroom.id} no encontrada (asociada al sensor ${data.sensorCode})`);
+      }
+      
+      // Verificar si el classroomFullName coincide (opcional, pero buena práctica)
+      if (classroom.fullName !== data.classroomFullName) {
+        console.warn(`Advertencia: classroomFullName del payload (${data.classroomFullName}) no coincide con el de la BD (${classroom.fullName}) para el sensor ${data.sensorCode}. Se usará el de la BD.`);
       }
 
       // Paso 5: Normalizar datos
-      const timestamp = data.timestamp || new Date();
-      const type = data.type || 'occupancy';
-      const value = parseInt(data.value, 10);
+      const timestamp = new Date(data.timestamp);
+      // const occupancyValue = parseInt(data.occupancy, 10);
 
-      // // Paso 6: Actualizar el estado de actividad del sensor
-      // await this.sensorRepository.updateLastActive(sensor.id, timestamp);
-
-      // Paso 7: Crear objeto de lectura
-      const sensorReading = {
-        sensorCode: data.sensorCode,
-        classroomId: sensor.classroom.id,
-        value,
-        type,
-        timestamp,
-        isClassroomOccupied: () => value > 0
-      };
-
-      // Paso 8: Procesar la lectura a través del servicio IoT
-      const occupancyStatus = await this.iotSensorService.processSensorReading(sensorReading);
-
-      // Paso 9: Guardar lectura en base de datos de series temporales
-      await this.timeSeriesDataService.saveSensorReading({
-        sensorCode: data.sensorCode, 
-        classroomId: sensor.classroom.id, 
-        value,
-        type,
-        timestamp
+      // Paso 7: Crear objeto de lectura del dominio
+      const sensorReading = new SensorReading({
+        sensorCode: data.sensorCode.toString(), // Asegurar que sea string si viene como número
+        classroomFullName: classroom.fullName, // Usar el nombre del aula de la BD como fuente de verdad
+        occupancy: data.occupancy,
+        timestamp: timestamp
       });
 
-      // // Paso 10: Actualizar el estado de ocupación del aula en la base de datos relacional
-      // if (type === 'occupancy') {
-      //   await this.classroomRepository.updateOccupancyStatus(sensor.classroom.id, value);
-      // }
+      // Paso 8: Procesar la lectura a través del servicio IoT
+      const occupancyStatus = await this.iotSensorService.processSensorReading(sensorReading, sensor.classroom.id);
 
       // Paso 11: Devolver resultado
       return {
         success: true,
         sensor: {
           id: sensor.id,
-          code: sensor.sensorCode,
-          type: sensor.type,
           classroomId: sensor.classroom.id,
-          classroomName: classroom.fullName
+          classroomFullName: classroom.fullName // Confirmado desde la BD
         },
         reading: {
-          value,
-          type,
-          timestamp
+          value: sensorReading.occupancy,
+          timestamp: sensorReading.timestamp
         },
         occupancyStatus: {
+          classroomId: occupancyStatus.classroomId, // Asegurar que esto lo devuelva el servicio IoT
           isOccupied: occupancyStatus.isOccupied,
-          lastUpdated: occupancyStatus.lastUpdated,
-          source: occupancyStatus.source,
-          confidence: occupancyStatus.confidence
+          lastUpdated: occupancyStatus.lastUpdated
         }
       };
     } catch (error) {

@@ -24,33 +24,39 @@ class RealTimeOccupancyService extends IoTSensorService {
 
   /**
    * Procesa una lectura de sensor y actualiza el estado de ocupación
-   * @param {SensorReading} sensorReading - Lectura del sensor
+   * @param {SensorReading} sensorReading - Lectura del sensor (con classroomFullName, occupancy)
+   * @param {string} classroomId - ID del aula (obtenido del sensor en la BD)
    * @returns {Promise<OccupancyStatus>} - Estado de ocupación actualizado
    */
-  async processSensorReading(sensorReading) {
+  async processSensorReading(sensorReading, classroomId) {
     try {
       // 1. Guardar la lectura en InfluxDB
-      await this._saveSensorReadingToInfluxDB(sensorReading);
+      await this.timeSeriesDataService.saveSensorReading({
+        sensorCode: sensorReading.sensorCode,
+        classroomId: classroomId, // Usar el classroomId proporcionado
+        value: sensorReading.occupancy, // El valor ahora es occupancy
+        timestamp: sensorReading.timestamp,
+        type: 'occupancy' // Mantener 'type' para consistencia en InfluxDB si se usa para queries
+      });
       
-      // 2. Actualizar el estado del sensor en SQL si es necesario
-      // await this._updateSensorInSQL(sensorReading);
+      // 2. Actualizar el estado del sensor en SQL si es necesario (ya usa sensorCode)
+      // await this._updateSensorInSQL(sensorReading); // sensorReading tiene sensorCode
       
-      // 3. Determinar el estado de ocupación
+      // 3. Determinar el estado de ocupación (usando el método de la entidad SensorReading)
       const isOccupied = sensorReading.isClassroomOccupied();
       
       // 4. Crear objeto de estado de ocupación
       const occupancyStatus = new OccupancyStatus({
-        classroomId: sensorReading.classroomId,
+        classroomId: classroomId, // Usar el classroomId proporcionado
         isOccupied: isOccupied,
-        lastUpdated: sensorReading.timestamp,
-        source: 'sensor',
-        confidence: 1.0
+        lastUpdated: sensorReading.timestamp
+        // source y confidence ya no son necesarios
       });
       
-      // 5. Actualizar caché
-      this.occupancyCache.set(sensorReading.classroomId, occupancyStatus);
+      // 5. Actualizar caché (usa classroomId)
+      this.occupancyCache.set(classroomId, occupancyStatus);
       
-      // 6. Notificar a los clientes en tiempo real
+      // 6. Notificar a los clientes en tiempo real (usa classroomId)
       this._notifyOccupancyChange(occupancyStatus);
       
       return occupancyStatus;
@@ -75,26 +81,30 @@ class RealTimeOccupancyService extends IoTSensorService {
       // Si no está en caché, obtener la lectura más reciente de InfluxDB
       const latestReading = await this.timeSeriesDataService.getLatestClassroomReading(
         classroomId, 
-        'occupancy'
+        'occupancy' 
       );
       
       // Si no hay lecturas, devolver estado desconocido
       if (!latestReading) {
         return new OccupancyStatus({
           classroomId,
-          isOccupied: false,
-          source: 'unknown',
-          confidence: 0
+          isOccupied: false, // Por defecto no ocupada si no hay datos
+          lastUpdated: new Date() // Usar fecha actual para lastUpdated
+          // source: 'unknown', // Eliminado
+          // confidence: 0 // Eliminado
         });
       }
       
       // Crear objeto de estado de ocupación
+      // El campo de InfluxDB es `_value` o `value` dependiendo de la implementación de InfluxDBService
+      // Asumimos que InfluxDBService devuelve un objeto con `value` y `timestamp`
+      const occupancyValue = latestReading.value; // o latestReading._value
       const occupancyStatus = new OccupancyStatus({
         classroomId,
-        isOccupied: latestReading.value > 0,
-        lastUpdated: latestReading.timestamp,
-        source: 'sensor',
-        confidence: 1.0
+        isOccupied: occupancyValue > 0, // Basado en el valor numérico de la lectura
+        lastUpdated: latestReading.timestamp
+        // source: 'sensor', // Eliminado
+        // confidence: 1.0 // Eliminado
       });
       
       // Actualizar caché
@@ -180,22 +190,31 @@ class RealTimeOccupancyService extends IoTSensorService {
    * @private
    */
   async _saveSensorReadingToInfluxDB(sensorReading) {
+    // Este método parece redundante ahora que el guardado se hace en processSensorReading
+    // y processSensorReading tiene el classroomId.
+    // Lo comentaremos o eliminaremos si no se usa en otro lugar.
+    /*
     await this.timeSeriesDataService.saveSensorReading({
       sensorCode: sensorReading.sensorCode,
-      classroomId: sensorReading.classroomId,
-      value: sensorReading.value,
-      timestamp: sensorReading.timestamp
+      classroomId: sensorReading.classroomId, // ¡Este es el problema! sensorReading ya no tiene classroomId
+      value: sensorReading.occupancy,
+      timestamp: sensorReading.timestamp,
+      type: 'occupancy'
     });
+    */
+    // Si se decide mantener, necesitaría el classroomId de alguna forma, 
+    // por ejemplo, pasándolo como argumento o buscándolo con sensorRepository.
+    // Por ahora, dado que el guardado se hace directamente en processSensorReading, este método no es llamado.
   }
 
   /**
    * Actualiza el estado del sensor en la base de datos SQL
-   * @param {SensorReading} sensorReading - Lectura del sensor
+   * @param {SensorReading} sensorReading - Lectura del sensor (tiene sensorCode y occupancy)
    * @private
    */
   async _updateSensorInSQL(sensorReading) {
     try {
-      // Buscar sensor por código
+      // Buscar sensor por código (sensorReading.sensorCode está disponible)
       const sensors = await this.sensorRepository.findBySensorCode(sensorReading.sensorCode);
       
       // Si no existe, no hay nada que actualizar en SQL
