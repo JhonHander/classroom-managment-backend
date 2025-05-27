@@ -1,4 +1,5 @@
 import Sensor from '../../domain/entities/Sensor.js';
+import { ClassroomMapper } from './ClassroomMapper.js';
 
 export class SensorMapper {
 
@@ -10,16 +11,12 @@ export class SensorMapper {
 
     static toDomain(SensorModel) {
         if (!SensorModel) return null;
+        const classroom = ClassroomMapper.toDomain(SensorModel.classroom);
 
         return new Sensor({
             id: SensorModel.id,
-            name: SensorModel.name,
-            classroomId: SensorModel.classroomId,
-            classroomFullName: SensorModel.classroomFullName,
-            classroomNumber: SensorModel.classroomNumber,
-            classroomBlock: SensorModel.classroomBlock,
-            classroomTypeId: SensorModel.classroomTypeId,
-            classroomTypeName: SensorModel.classroomTypeName,
+            classroom: classroom,
+            status: SensorModel.status
         });
     }
 
@@ -35,13 +32,8 @@ export class SensorMapper {
 
         return {
             id: sensor.id,
-            name: sensor.name,
-            classroomId: sensor.classroomId,
-            classroomFullName: sensor.classroomFullName,
-            classroomNumber: sensor.classroomNumber,
-            classroomBlock: sensor.classroomBlock,
-            classroomTypeId: sensor.classroomTypeId,
-            classroomTypeName: sensor.classroomTypeName,
+            classroomId: sensor.classroom.id,
+            status: sensor.status
         };
     }
 }

@@ -158,7 +158,8 @@ container.register('sensorRepository', (c) => {
     const models = c.resolve('sequelizeModels');
     return new SequelizeSensorRepository(
         models.SensorModel,
-        models.ClassroomModel
+        models.ClassroomModel,
+        models.ClassroomTypeModel
     );
 }, { singleton: true });
 

@@ -37,20 +37,20 @@ class ProcessIoTSensorDataUseCase {
       }
 
       // Paso 2: Obtener el sensor asociado al código
-      const sensor = await this.sensorRepository.findByCode(data.sensorCode);
+      const sensor = await this.sensorRepository.findById(data.sensorCode);
       if (!sensor) {
         throw new Error(`Sensor con código ${data.sensorCode} no encontrado`);
       }
 
       // Paso 3: Verificar que el sensor está asociado a un aula
-      if (!sensor.classroomId) {
+      if (!sensor.classroom.id) {
         throw new Error(`El sensor con código ${data.sensorCode} no está asociado a ningún aula`);
       }
 
       // Paso 4: Obtener el aula asociada
-      const classroom = await this.classroomRepository.findById(sensor.classroomId);
+      const classroom = await this.classroomRepository.findById(sensor.classroom.id);
       if (!classroom) {
-        throw new Error(`Aula con ID ${sensor.classroomId} no encontrada`);
+        throw new Error(`Aula con ID ${sensor.classroom.id} no encontrada`);
       }
 
       // Paso 5: Normalizar datos
@@ -58,13 +58,13 @@ class ProcessIoTSensorDataUseCase {
       const type = data.type || 'occupancy';
       const value = parseInt(data.value, 10);
 
-      // Paso 6: Actualizar el estado de actividad del sensor
-      await this.sensorRepository.updateLastActive(sensor.id, timestamp);
+      // // Paso 6: Actualizar el estado de actividad del sensor
+      // await this.sensorRepository.updateLastActive(sensor.id, timestamp);
 
       // Paso 7: Crear objeto de lectura
       const sensorReading = {
         sensorCode: data.sensorCode,
-        classroomId: sensor.classroomId,
+        classroomId: sensor.classroom.id,
         value,
         type,
         timestamp,
@@ -77,16 +77,16 @@ class ProcessIoTSensorDataUseCase {
       // Paso 9: Guardar lectura en base de datos de series temporales
       await this.timeSeriesDataService.saveSensorReading({
         sensorCode: data.sensorCode, 
-        classroomId: sensor.classroomId, 
+        classroomId: sensor.classroom.id, 
         value,
         type,
         timestamp
       });
 
-      // Paso 10: Actualizar el estado de ocupación del aula en la base de datos relacional
-      if (type === 'occupancy') {
-        await this.classroomRepository.updateOccupancyStatus(sensor.classroomId, value);
-      }
+      // // Paso 10: Actualizar el estado de ocupación del aula en la base de datos relacional
+      // if (type === 'occupancy') {
+      //   await this.classroomRepository.updateOccupancyStatus(sensor.classroom.id, value);
+      // }
 
       // Paso 11: Devolver resultado
       return {
@@ -95,7 +95,7 @@ class ProcessIoTSensorDataUseCase {
           id: sensor.id,
           code: sensor.sensorCode,
           type: sensor.type,
-          classroomId: sensor.classroomId,
+          classroomId: sensor.classroom.id,
           classroomName: classroom.fullName
         },
         reading: {
