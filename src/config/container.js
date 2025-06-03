@@ -33,7 +33,7 @@ import GetActiveReservationUserUseCase from '../application/use-cases/reservatio
 import GetReservationsByUserUseCase from '../application/use-cases/reservation/GetReservationsByUserUseCase.js';
 import GetReservationsByClassroomUseCase from '../application/use-cases/reservation/GetReservationsByClassroomUseCase.js';
 import GetReservationsByDateUseCase from '../application/use-cases/reservation/GetReservationsByDateUseCase.js';
-import UpdateAvailableClassroomsRealTimeUseCase from '../application/use-cases/classroom/UpdateAvailableClassroomsRealTimeUseCase.js';
+// import UpdateAvailableClassroomsRealTimeUseCase from '../application/use-cases/classroom/UpdateAvailableClassroomsRealTimeUseCase.js';
 import ProcessIoTSensorDataUseCase from '../application/use-cases/iot/ProcessIoTSensorDataUseCase.js';
 import GetRealTimeClassroomOccupancyUseCase from '../application/use-cases/iot/GetRealTimeClassroomOccupancyUseCase.js';
 
@@ -324,19 +324,19 @@ container.register('getReservationsByClassroomUseCase', (c) => {
 });
 
 container.register('getReservationsByDateUseCase', (c) => {
-  return new GetReservationsByDateUseCase(
+  return new GetReservationsByDateUseCase(  
     c.resolve('reservationRepository')
   );
 });
 
-// Registrar el caso de uso para aulas disponibles en tiempo real
-container.register('updateAvailableClassroomsRealTimeUseCase', (c) => {
-  return new UpdateAvailableClassroomsRealTimeUseCase(
-    c.resolve('classroomRepository'),
-    c.resolve('reservationRepository'),
-    c.resolve('webSocketController')
-  );
-});
+// // Registrar el caso de uso para aulas disponibles en tiempo real
+// container.register('updateAvailableClassroomsRealTimeUseCase', (c) => {
+//   return new UpdateAvailableClassroomsRealTimeUseCase(
+//     c.resolve('classroomRepository'),
+//     c.resolve('reservationRepository'),
+//     c.resolve('realTimeService')
+//   );
+// });
 
 // Registrar casos de uso para IoT
 container.register('processIoTSensorDataUseCase', (c) => {
