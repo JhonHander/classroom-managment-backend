@@ -1,0 +1,118 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Reglas del Proyecto: Gestión de Aulas Universitarias con IoT y Tiempo Real
+
+## Descripción General del Proyecto
+
+Este sistema integrado combina sensores IoT, una aplicación móvil y un backend centralizado para optimizar la gestión de aulas en una universidad. El proyecto se estructura en dos módulos principales:
+
+1.  **Módulo de Reservas de Aulas**:
+    *   Permite a estudiantes y profesores realizar reservas de aulas basadas en horarios académicos y disponibilidad en el sistema.
+    *   Gestiona confirmaciones de asistencia mediante escaneo de códigos QR.
+    *   No depende de la información de los sensores para la reserva inicial.
+2.  **Módulo de Disponibilidad en Tiempo Real**:
+    *   Muestra a los usuarios qué aulas están físicamente ocupadas o libres en este momento según los datos de sensores IoT.
+    *   Permite a estudiantes encontrar espacios disponibles para estudio sin necesidad de hacer reserva formal.
+    *   Utiliza exclusivamente los datos de los sensores de movimiento.
+
+## Arquitectura y Tecnologías Clave
+
+El backend del proyecto está desarrollado con las siguientes tecnologías y principios arquitectónicos:
+
+*   **Entorno de Ejecución**: [Node.js](mdc:package.json)
+*   **Framework Web**: [Express.js](mdc:package.json) (para la API RESTful)
+*   **Lenguaje**: JavaScript (Node.js Runtime)
+*   **Comunicación Sensores**: HTTP (los sensores envían datos directamente al backend vía API REST. El backend procesará estos datos utilizando entidades como [SensorReading](mdc:src/domain/entities/iot/SensorReading.js) para interpretar la lectura y actualizar un [OccupancyStatus](mdc:src/domain/entities/iot/OccupancyStatus.js)).
+*   **Bases de Datos**:
+    *   **MySQL**: Para la gestión de usuarios, reservas, horarios, aulas ([src/infrastructure/database/database.module.ts](mdc:src/infrastructure/database/database.module.ts) o similar). (Se accede a través de una librería como `mysql2` o un constructor de consultas si no se usa un ORM completo).
+    *   **InfluxDB**: Para el almacenamiento de datos históricos de sensores (series de tiempo), si se mantiene esta necesidad. El estado de ocupación actual (`OccupancyStatus`) se deriva de las lecturas de los sensores (`SensorReading`).
+*   **Autenticación**: JWT (JSON Web Tokens) para el control de acceso.
+*   **Comunicación en Tiempo Real**: WebSockets (probablemente con [Socket.IO](mdc:package.json) o una librería similar) para actualizaciones instantáneas en la interfaz de usuario, reflejando el `OccupancyStatus`.
+*   **Gestión de Dependencias**: [npm](mdc:package.json) o [yarn](mdc:yarn.lock) (verificar `package-lock.json` o `yarn.lock`).
+*   **Servidor de Desarrollo**: [Nodemon](mdc:package.json) para reinicio automático durante el desarrollo.
+*   **Variables de Entorno**: Uso de archivos `.env` (ej. [src/config/env.config.ts](mdc:src/config/env.config.ts) o `src/config/env.config.js`) para la configuración.
+*   **Patrones de Diseño/Arquitectura**:
+    *   **Arquitectura por Capas (Hexagonal)**: Evidente por la separación de responsabilidades en directorios como `domain`, `application`, `infrastructure`, e `interfaces`.
+        *   `src/domain`: Contiene las entidades ([SensorReading](mdc:src/domain/entities/iot/SensorReading.js), [OccupancyStatus](mdc:src/domain/entities/iot/OccupancyStatus.js), etc.) y la lógica de negocio central.
+        *   `src/application`: Orquesta los casos de uso y coordina entre el dominio y la infraestructura.
+        *   `src/infrastructure`: Implementaciones concretas de interfaces (bases de datos, servicios externos).
+        *   `src/interfaces`: Controladores, DTOs y adaptadores para la comunicación con el exterior (API REST, WebSockets).
+    *   `src/infrastructure`: Implementaciones concretas de interfaces (bases de datos, servicios externos).
+        *   `database/`: Conexión y acceso a datos MySQL.
+        *   `websocket/`: Configuración e implementación del servidor de WebSockets.
+    *   `interfaces/`: Puntos de entrada y salida de la aplicación.
+        *   `controllers/`: Manejadores de rutas HTTP (API REST), incluyendo el endpoint para recibir datos de `SensorReading` de los sensores.
+    *   `main.ts`: Punto de entrada principal de la aplicación backend.
+*   `package.json`: Define las dependencias del proyecto y scripts.
+
+## Estructura del Proyecto (Backend)
+
+La estructura del proyecto backend sigue una organización por capas:
+
+*   `src/`: Contiene todo el código fuente de la aplicación.
+    *   `application/`: Contiene los casos de uso o servicios de aplicación.
+        *   `use-cases/`: Implementaciones específicas de los casos de uso.
+    *   `config/`: Archivos de configuración (ej: variables de entorno, módulos).
+    *   `domain/`: El núcleo del negocio.
+        *   `entities/`: Objetos de dominio.
+        *   `repositories/`: Interfaces para el acceso a datos.
+        *   `services/`: Lógica de dominio que no pertenece a una entidad específica.
+    *   `infrastructure/`: Implementaciones concretas de las abstracciones definidas en el dominio.
+        *   `database/`: Conexión y acceso a datos MySQL.
+        *   `websocket/`: Configuración e implementación del servidor de WebSockets.
+    *   `interfaces/`: Puntos de entrada y salida de la aplicación.
+        *   `controllers/`: Manejadores de rutas HTTP (API REST), incluyendo el endpoint para recibir datos de `SensorReading` de los sensores.
+        *   `dtos/`: Objetos de Transferencia de Datos.
+        *   `guards/`: Guardias de autenticación/autorización.
+    *   `main.ts`: Punto de entrada principal de la aplicación backend.
+*   `.cursor/rules/`: Directorio para las reglas de Cursor.
+    *   `project_overview.mdc`: Este archivo.
+*   `package.json`: Define las dependencias del proyecto y scripts.
+*   `tsconfig.json`: Configuración del compilador de TypeScript.
+
+## Flujo de Datos del Sistema (Resumido)
+
+1.  **Sensores IoT (ESP3266, PIR)**: Detectan movimiento.
+2.  **Comunicación (HTTP)**: El sensor envía una petición HTTP (ej. POST) al backend con los datos de la lectura (ej. `sensorCode`, `value`, `timestamp`).
+    *   Ejemplo de payload HTTP: `{ "sensorCode": "sensor001", "classroomId": "101", "value": 1, "timestamp": "2025-02-12T14:30:00Z" }`
+3.  **Backend ([Node.js](mdc:package.json), [Express.js](mdc:package.json))**:
+    *   Un controlador ([src/interfaces/controllers/](mdc:src/interfaces/controllers)) recibe la petición HTTP.
+    *   Se instancia un objeto `SensorReading` ([src/domain/entities/iot/SensorReading.js](mdc:src/domain/entities/iot/SensorReading.js)) con los datos recibidos.
+    *   La lógica de aplicación ([src/application/](mdc:src/application)) utiliza `SensorReading` para determinar el estado de ocupación y actualiza o crea una instancia de `OccupancyStatus` ([src/domain/entities/iot/OccupancyStatus.js](mdc:src/domain/entities/iot/OccupancyStatus.js)) para el aula correspondiente.
+    *   Opcionalmente, la lectura cruda del sensor (`SensorReading`) puede almacenarse en **InfluxDB** para análisis histórico.
+    *   La información de `OccupancyStatus` se utiliza para actualizar el estado en **MySQL** si es necesario (o se mantiene en memoria/cache para rápida consulta) y se propaga a los clientes.
+    *   Gestiona la lógica de negocio para reservas, usuarios, horarios, etc., utilizando **MySQL**.
+    *   Expone una **API RESTful** para la comunicación con la aplicación móvil.
+4.  **Aplicación Móvil ([React Native](mdc:package.json) o similar)**:
+    *   Interactúa con la API REST del backend para el módulo de reservas y para obtener información inicial.
+    *   Se conecta vía **WebSockets** para recibir actualizaciones en tiempo real sobre la disponibilidad de aulas, basadas en `OccupancyStatus`.
+5.  **WebSockets**: El backend envía actualizaciones en tiempo real a la aplicación móvil cuando cambia el `OccupancyStatus` de un aula.
+
+## Modelo de Datos (Entidades Principales en MySQL)
+
+Basado en el documento y la estructura típica de estos sistemas:
+
+*   **User**: Información de usuarios (id, rol, nombre, email, contraseña hash).
+    *   Referenciado en `src/domain/entities/user.entity.ts` (o similar).
+*   **Role**: Define los roles de usuario (estudiante, profesor, administrador).
+    *   Referenciado en `src/domain/entities/role.entity.ts` (o similar).
+*   **Classroom**: Información de las aulas (id, nombre, capacidad, tipo, bloque).
+    *   Referenciado en `src/domain/entities/classroom.entity.ts` (o similar).
+*   **ClassroomType**: Tipos de aulas (ej: laboratorio, aula magna).
+*   **ClassroomFeatures**: Características de un aula (ej: proyector, pizarra inteligente).
+*   **Reservation**: Detalles de las reservas (id, usuario, aula, fecha, hora_inicio, hora_fin, estado).
+    *   Referenciado en `src/domain/entities/reservation.entity.ts` (o similar).
+*   **ReservationStatus**: Estados de una reserva (pendiente, confirmada, expirada, cancelada).
+*   **Schedule**: Horarios de clases programadas en las aulas.
+*   **Sensor**: Información sobre los sensores IoT instalados (id, aula_id, codigo_sensor). (Nota: `SensorReading` y `OccupancyStatus` son entidades de dominio que manejan los datos y el estado derivado, no necesariamente tablas directas con esos nombres exactos para el estado en tiempo real si este es volátil y se comunica por WebSockets).
+
+## Modelo de Datos (En InfluxDB)
+
+*   **LecturaSensor** (o similar, si se usa InfluxDB para el histórico de `SensorReading`):
+    *   Campos: `sensorCode`, `classroomId`, `value`, `timestamp`.
+
+
+

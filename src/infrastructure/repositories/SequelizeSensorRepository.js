@@ -3,15 +3,25 @@ import { SensorMapper } from "../mappers/SensorMapper.js";
 import { Op } from 'sequelize'; // Necesario para algunas consultas
 
 export class SequelizeSensorRepository extends ISensorRepository {
-    constructor(sensorModel, classroomModel) {
+    constructor(sensorModel, classroomModel, classroomTypeModel) {
         super();
         this.sensorModel = sensorModel;
         this.classroomModel = classroomModel;
+        this.classroomTypeModel = classroomTypeModel; // <--- Se guardó
     }
 
     _includeRelations() {
         return [
-            { model: this.classroomModel, as: 'classroom' } // Asume alias 'classroom' definido en associations.js
+            {
+                model: this.classroomModel,
+                as: 'classroom',
+                include: [ // Esto es para incluir relaciones del Classroom
+                    {
+                        model: this.classroomTypeModel, // El modelo a incluir
+                        as: 'classroomType' // El alias de la asociación como está definida en ClassroomModel
+                    }
+                ]
+            }
         ];
     }
 

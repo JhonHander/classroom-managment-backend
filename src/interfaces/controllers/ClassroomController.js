@@ -1,8 +1,8 @@
 import { AvailableClassroomDTO } from '../dtos/FindAvailableClassroomsDTO.js';
 
 class ClassroomController {
-  constructor(getAvailableClassroomsUseCase) {
-    this.getAvailableClassroomsUseCase = getAvailableClassroomsUseCase;
+  constructor(FindAvailableClassroomsUseCase) {
+    this.findAvailableClassroomsUseCase = FindAvailableClassroomsUseCase;
   }
 
   /**
@@ -22,7 +22,7 @@ class ClassroomController {
         });
       }
 
-      const classrooms = await this.getAvailableClassroomsUseCase.execute({
+      const classrooms = await this.findAvailableClassroomsUseCase.execute({
         date,
         startHour: startHour,
         endHour: endHour

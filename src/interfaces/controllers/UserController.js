@@ -129,7 +129,7 @@ class UserController {
       if (!result.success) {
         return res.status(401).json({
           success: false,
-          message: result.message || 'Invalid refresh token'
+          message: result.message
         });
       }
 
@@ -138,6 +138,7 @@ class UserController {
         message: 'Token refreshed successfully',
         data: {
           accessToken: result.data.accessToken,
+          refreshToken: result.data.refreshToken,
           user: result.data.user
         }
       });

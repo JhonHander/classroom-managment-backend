@@ -5,6 +5,7 @@ import { connect, sync } from './config/database.js'; // Importar la función de
 import userRoutes from './interfaces/routes/user.routes.js';
 import classroomRoutes from './interfaces/routes/classroom.routes.js'; // Importar las rutas de classroom
 import reservationRoutes from './interfaces/routes/reservation.routes.js'; // Importar las rutas de reserva
+import iotRoutes from './interfaces/routes/iot.routes.js'; // Importar las rutas de IoT
 // import availabilityRoutes from './interfaces/routes/availability.routes.js'; // Importar las rutas de disponibilidad
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/classrooms', classroomRoutes); 
 // app.use('/api/availability', availabilityRoutes); // Rutas de disponibilidad
 app.use('/api/reservations', reservationRoutes); // Rutas de reservas
+app.use('/api/iot', iotRoutes); // Rutas de IoT
 
 // Middleware para manejar rutas no encontradas
 app.use((req, res) => {
