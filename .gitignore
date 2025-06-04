@@ -64,3 +64,9 @@ lerna-debug.log*
 
 # SonarQube
 sonar-project.properties
+
+WebSocketClientTest.js
+WebSocketServerTest.js
+manualWebSocketTest.js
+test-client.html
+WEBSOCKET_TESTING.md
